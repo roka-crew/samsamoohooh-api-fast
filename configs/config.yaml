@@ -1,0 +1,7 @@
+listen: ":8080" 
+
+token:
+  secretKey: "OhDqOIZwXlXPqU6QpfIeckxTyMUGk22t" 
+
+persistence:
+  path: "samsamoohooh.db" 
