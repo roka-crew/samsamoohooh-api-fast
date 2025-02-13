@@ -13,7 +13,16 @@ type Config struct {
 }
 
 type Token struct {
-	SecretKey string `yaml:"secretKey"`
+	SecretKey []byte `yaml:"secretKey"`
+}
+
+func (t *Token) UnmarshalYAML(value *yaml.Node) error {
+	var key string
+	if err := value.Decode(&key); err != nil {
+		return err
+	}
+	t.SecretKey = []byte(key)
+	return nil
 }
 
 type Persistence struct {
