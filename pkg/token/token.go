@@ -45,7 +45,7 @@ func (t *Token) ParseToken(tokenString string) (*Payload, error) {
 
 type Payload struct {
 	// 사용자의 ID
-	UserID int `json:"userID"`
+	UserID uint `json:"userID"`
 }
 
 func (p Payload) Valid() error {

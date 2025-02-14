@@ -1,33 +1,56 @@
 package handler
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
-	"github.com/roka-crew/internal/user/presenter"
+	"github.com/roka-crew/domain"
 	"github.com/roka-crew/internal/user/service"
+	"github.com/roka-crew/presenter"
+	"github.com/roka-crew/router"
 )
 
 type UserHandler struct {
 	userService *service.UserService
+	router      *router.Router
 }
 
 func NewUserHandler(
 	userService *service.UserService,
+	router *router.Router,
 ) *UserHandler {
-	return &UserHandler{
+	userHandler := &UserHandler{
 		userService: userService,
+		router:      router,
 	}
+
+	users := router.Group("/users")
+	{
+		users.POST("/", userHandler.CreateUser)
+	}
+
+	return userHandler
 }
 
 func (h UserHandler) CreateUser(c echo.Context) error {
 	var (
-		req presenter.CreateUserRequest
-		_   presenter.CreateUserResponse
-		err error
+		request presenter.CreateUserRequest
+		err     error
 	)
 
-	if err = c.Bind(&req); err != nil {
+	if err = c.Bind(&request); err != nil {
 		return err
 	}
 
-	return nil
+	createdUser, err := h.userService.CreateUser(c.Request().Context(), request)
+
+	switch {
+	case err == nil:
+		return c.JSON(http.StatusCreated, presenter.NewCreateUserResponse(createdUser))
+	case errors.Is(err, domain.ErrUserAlreadyExists):
+		return c.NoContent(http.StatusConflict)
+	default:
+		return err
+	}
 }

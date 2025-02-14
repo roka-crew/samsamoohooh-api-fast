@@ -5,6 +5,8 @@ import (
 
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/persistence/sqlite"
+	"github.com/roka-crew/presenter"
+	"github.com/samber/lo"
 )
 
 type UserStore struct {
@@ -17,7 +19,7 @@ func NewUserStore(
 	return &UserStore{db: db}
 }
 
-func (s UserStore) CreateUser(ctx context.Context, params domain.CreateUserParams) (*domain.User, error) {
+func (s UserStore) CreateUser(ctx context.Context, params presenter.CreateUserParams) (*domain.User, error) {
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
@@ -27,7 +29,7 @@ func (s UserStore) CreateUser(ctx context.Context, params domain.CreateUserParam
 	return &params, nil
 }
 
-func (s UserStore) ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error) {
+func (s UserStore) ListUsers(ctx context.Context, params presenter.ListUsersParams) (domain.Users, error) {
 	db := s.db.WithContext(ctx)
 
 	if len(params.IDs) > 0 {
@@ -46,6 +48,10 @@ func (s UserStore) ListUsers(ctx context.Context, params domain.ListUsersParams)
 		db = db.Preload("Topics")
 	}
 
+	if params.Limit > 0 {
+		db = db.Limit(params.Limit)
+	}
+
 	var users []domain.User
 	if err := db.Find(&users).Error; err != nil {
 		return nil, err
@@ -54,12 +60,12 @@ func (s UserStore) ListUsers(ctx context.Context, params domain.ListUsersParams)
 	return users, nil
 }
 
-func (s UserStore) PatchUser(ctx context.Context, params domain.PatchUserParams) error {
+func (s UserStore) PatchUser(ctx context.Context, params presenter.PatchUserParams) error {
 	db := s.db.WithContext(ctx)
 
 	var user domain.User
-	if params.Nickname != "" {
-		user.Nickname = params.Nickname
+	if params.Nickname != nil {
+		user.Nickname = lo.FromPtr(params.Nickname)
 	}
 
 	if params.Resolution != nil {
@@ -73,7 +79,7 @@ func (s UserStore) PatchUser(ctx context.Context, params domain.PatchUserParams)
 	return nil
 }
 
-func (s UserStore) DeleteUser(ctx context.Context, params domain.DeleteUserParams) error {
+func (s UserStore) DeleteUser(ctx context.Context, params presenter.DeleteUserParams) error {
 	db := s.db.WithContext(ctx)
 
 	if params.UserID > 0 {

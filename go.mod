@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/labstack/echo/v4 v4.13.3
+	github.com/samber/lo v1.49.1
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/sqlite v1.5.7
