@@ -10,6 +10,13 @@ func (u Users) IsEmpty() bool {
 	return len(u) == 0
 }
 
+func (u Users) First() *User {
+	if u.IsEmpty() {
+		return nil
+	}
+	return &u[0]
+}
+
 type User struct {
 	gorm.Model
 	Nickname   string `gorm:"uniqueIndex"`

@@ -30,5 +30,25 @@ func (s UserService) CreateUser(ctx context.Context, request presenter.CreateUse
 		return nil, domain.ErrUserAlreadyExists
 	}
 
-	return nil, nil
+	createdUser, err := s.userStore.CreateUser(ctx, presenter.CreateUserParams{
+		Nickname:   request.Nickname,
+		Resolution: request.Resolution,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return createdUser, nil
+}
+
+func (u UserService) FindUserByMe(ctx context.Context, reqeust presenter.FindUserByMeRequest) (*domain.User, error) {
+	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
+		IDs:   []uint{reqeust.RequestUserID},
+		Limit: 1,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return listUsers.First(), nil
 }
