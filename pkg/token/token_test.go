@@ -15,7 +15,7 @@ func TestGenerateToken(t *testing.T) {
 	}
 	tokenService := NewToken(cfg)
 
-	userID := 12345
+	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
 
 	assert.NoError(t, err)
@@ -30,7 +30,7 @@ func TestParseToken(t *testing.T) {
 	}
 	tokenService := NewToken(cfg)
 
-	userID := 12345
+	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, tokenString)
@@ -64,7 +64,7 @@ func TestParseToken_WrongSecret(t *testing.T) {
 	}
 	tokenService := NewToken(cfg)
 
-	userID := 12345
+	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
 	assert.NoError(t, err)
 

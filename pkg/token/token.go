@@ -13,7 +13,7 @@ func NewToken(cfg *config.Config) *Token {
 	return &Token{cfg: cfg}
 }
 
-func (t *Token) GenerateToken(userID int) (string, error) {
+func (t *Token) GenerateToken(userID uint) (string, error) {
 	payload := Payload{
 		UserID: userID,
 	}
