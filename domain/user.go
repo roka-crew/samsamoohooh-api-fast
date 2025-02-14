@@ -1,19 +1,35 @@
 package domain
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type User struct {
-	ID         int `storm:"id,increment"`
-	Nickname   string
+	gorm.Model
+	Nickname   string `gorm:"uniqueIndex"`
 	Resolution *string
 
-	Groups []GroupMembership
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Gropus []Group `gorm:"many2many:user_group_mapper;"`
+	Topics []Topic
 }
 
-type UserMembership struct {
-	UserID   int
-	JoinedAt time.Time
+type CreateUserParams = User
+
+type ListUsersParams struct {
+	IDs        []int
+	Nicknames  []string
+	WithGroups bool
+	WithTopics bool
+}
+
+type PatchUserParams struct {
+	UserID     *int
+	Nickname   string
+	Resolution *string
+}
+
+type DeleteUserParams struct {
+	UserID         int
+	Nickname       string
+	WithHardDelete bool
 }

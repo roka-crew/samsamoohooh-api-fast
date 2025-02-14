@@ -1,12 +1,14 @@
 package domain
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Topic struct {
-	UserID  int
+	gorm.Model
 	Title   string
 	Content string
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	GoalID int
+	UserID int
 }

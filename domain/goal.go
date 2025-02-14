@@ -1,12 +1,16 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Goal struct {
+	gorm.Model
 	Deadline  time.Time
 	PageRange int
-	Topics    []Topic
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	GroupID int
+	Topcis  []Topic
 }

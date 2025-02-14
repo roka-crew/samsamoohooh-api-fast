@@ -1,9 +1,11 @@
 package domain
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Group struct {
-	ID               int `storm:"id,increment"`
+	gorm.Model
 	BookTitle        string
 	BookAuthor       string
 	BookPageMax      int
@@ -11,14 +13,6 @@ type Group struct {
 	BookPublisher    *string
 	BookIntroduction *string
 
-	Users  []UserMembership
-	Topics []Topic
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-type GroupMembership struct {
-	GroupID  int
-	JoinedAt time.Time
+	Goals []Goal
+	Users []User `gorm:"many2many:user_group_mapper;"`
 }

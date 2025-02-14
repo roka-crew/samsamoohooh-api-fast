@@ -17,11 +17,16 @@ type Token struct {
 }
 
 func (t *Token) UnmarshalYAML(value *yaml.Node) error {
-	var key string
-	if err := value.Decode(&key); err != nil {
+	type rawToken struct {
+		SecretKey string `yaml:"secretKey"`
+	}
+
+	var raw rawToken
+	if err := value.Decode(&raw); err != nil {
 		return err
 	}
-	t.SecretKey = []byte(key)
+
+	t.SecretKey = []byte(raw.SecretKey)
 	return nil
 }
 
