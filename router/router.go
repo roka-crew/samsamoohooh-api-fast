@@ -7,7 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/pkg/config"
 	"github.com/roka-crew/router/validator"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/fx"
+
+	_ "github.com/roka-crew/docs/swagger"
 )
 
 type Router struct {
@@ -26,6 +29,8 @@ func New(
 	// echo configuration
 	r.HideBanner = true
 	r.Validator = validator.New()
+
+	r.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// lifecycle
 	lc.Append(fx.Hook{
