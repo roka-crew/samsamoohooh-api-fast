@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/ctxutil"
 	"github.com/roka-crew/pkg/token"
 )
@@ -22,17 +22,17 @@ func (m AuthMiddleware) AuthenticateRequest(next echo.HandlerFunc) echo.HandlerF
 	return func(c echo.Context) error {
 		tokenString := c.Request().Header.Get("Authorization")
 		if tokenString == "" {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Authorization header is required")
+			return domain.ErrAuthorizationHeaderNeeded
 		}
 
 		// Bearer 토큰인지 확인
 		if !strings.HasPrefix(tokenString, "Bearer ") {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token: Bearer token is required")
+			return domain.ErrInvalidTokenRequired
 		}
 
 		payload, err := m.token.ParseToken(tokenString)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+			return domain.ErrInvalidToken
 		}
 
 		m.ctxutil.SetTokenUser(c, payload)

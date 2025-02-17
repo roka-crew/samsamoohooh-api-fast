@@ -1,4 +1,49 @@
+definitions:
+  presenter.CreateUserRequest:
+    properties:
+      nickname:
+        type: string
+      resolution:
+        type: string
+    required:
+    - nickname
+    type: object
+  presenter.FindUserByMeResponse:
+    properties:
+      nickname:
+        type: string
+      resolution:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /users:
+    post:
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 회원가입에 성공한 사용자 정보
+          schema:
+            $ref: '#/definitions/presenter.CreateUserRequest'
+      security:
+      - BearerAuth: []
+      summary: CreateUser ✅
+      tags:
+      - users
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 내 정보 조회에 성공한 사용자 정보
+          schema:
+            $ref: '#/definitions/presenter.FindUserByMeResponse'
+      security:
+      - BearerAuth: []
+      summary: FindUserByMe ✅
+      tags:
+      - users
 swagger: "2.0"

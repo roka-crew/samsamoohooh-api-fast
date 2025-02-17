@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 
+	"github.com/roka-crew/pkg/errors"
+
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
@@ -23,7 +25,7 @@ func (s UserStore) CreateUser(ctx context.Context, params presenter.CreateUserPa
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return nil, err
+		return nil, errors.NewInternalError(err)
 	}
 
 	return &params, nil
@@ -54,7 +56,7 @@ func (s UserStore) ListUsers(ctx context.Context, params presenter.ListUsersPara
 
 	var users []domain.User
 	if err := db.Find(&users).Error; err != nil {
-		return nil, err
+		return nil, errors.NewInternalError(err)
 	}
 
 	return users, nil
@@ -73,7 +75,7 @@ func (s UserStore) PatchUser(ctx context.Context, params presenter.PatchUserPara
 	}
 
 	if err := db.Updates(user).Error; err != nil {
-		return err
+		return errors.NewInternalError(err)
 	}
 
 	return nil
@@ -95,7 +97,7 @@ func (s UserStore) DeleteUser(ctx context.Context, params presenter.DeleteUserPa
 	}
 
 	if err := db.Delete(&domain.User{}).Error; err != nil {
-		return err
+		return errors.NewInternalError(err)
 	}
 
 	return nil

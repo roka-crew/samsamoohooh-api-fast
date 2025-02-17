@@ -29,6 +29,7 @@ func New(
 	// echo configuration
 	r.HideBanner = true
 	r.Validator = validator.New()
+	r.HTTPErrorHandler = errorHandler
 
 	r.GET("/swagger/*", echoSwagger.WrapHandler)
 

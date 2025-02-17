@@ -44,10 +44,18 @@ func NewUserHandler(
 	return userHandler
 }
 
+// CreateUser
+// @Tags users
+// @Summary CreateUser ✅
+// @Produce json
+// @Router /users [post]
+// @Success 201 {object} presenter.CreateUserRequest "회원가입에 성공한 사용자 정보"
+// @Security BearerAuth
 func (h UserHandler) CreateUser(c echo.Context) error {
 	var (
-		request presenter.CreateUserRequest
-		err     error
+		request  presenter.CreateUserRequest
+		response *presenter.CreateUserResponse
+		err      error
 	)
 
 	if err = c.Bind(&request); err != nil {
@@ -58,11 +66,11 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 		return err
 	}
 
-	createdUser, err := h.userService.CreateUser(c.Request().Context(), request)
+	response, err = h.userService.CreateUser(c.Request().Context(), request)
 
 	switch {
 	case err == nil:
-		return c.JSON(http.StatusCreated, presenter.NewCreateUserResponse(createdUser))
+		return c.JSON(http.StatusCreated, response)
 	case errors.Is(err, domain.ErrUserAlreadyExists):
 		return c.NoContent(http.StatusConflict)
 	default:
@@ -70,10 +78,18 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 	}
 }
 
+// FindUserByMe
+// @Tags users
+// @Summary FindUserByMe ✅
+// @Produce json
+// @Success 200 {object} presenter.FindUserByMeResponse "내 정보 조회에 성공한 사용자 정보"
+// @Router /users/me [get]
+// @Security BearerAuth
 func (h UserHandler) FindUserByMe(c echo.Context) error {
 	var (
-		request presenter.FindUserByMeRequest
-		err     error
+		request  presenter.FindUserByMeRequest
+		response *presenter.FindUserByMeResponse
+		err      error
 	)
 
 	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
@@ -81,14 +97,13 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 		return err
 	}
 
-	foundUserByMe, err := h.userService.FindUserByMe(c.Request().Context(), request)
-	if err != nil {
-		return err
-	}
+	response, err = h.userService.FindUserByMe(c.Request().Context(), request)
 
 	switch {
 	case err == nil:
-		return c.JSON(http.StatusOK, presenter.NewFindUserByMeRequest(foundUserByMe))
+		return c.JSON(http.StatusOK, response)
+	case errors.Is(err, domain.ErrUserNotFound):
+		return c.NoContent(http.StatusNotFound)
 	default:
 		return err
 	}
