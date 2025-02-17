@@ -13,7 +13,7 @@ func TestGenerateToken(t *testing.T) {
 			SecretKey: []byte("test-secret-key"),
 		},
 	}
-	tokenService := NewToken(cfg)
+	tokenService := New(cfg)
 
 	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
@@ -28,7 +28,7 @@ func TestParseToken(t *testing.T) {
 			SecretKey: []byte("test-secret-key"),
 		},
 	}
-	tokenService := NewToken(cfg)
+	tokenService := New(cfg)
 
 	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
@@ -47,7 +47,7 @@ func TestParseToken_InvalidToken(t *testing.T) {
 			SecretKey: []byte("test-secret-key"),
 		},
 	}
-	tokenService := NewToken(cfg)
+	tokenService := New(cfg)
 
 	invalidToken := "invalid.token.string"
 
@@ -62,7 +62,7 @@ func TestParseToken_WrongSecret(t *testing.T) {
 			SecretKey: []byte("test-secret-key"),
 		},
 	}
-	tokenService := NewToken(cfg)
+	tokenService := New(cfg)
 
 	var userID uint = 12345
 	tokenString, err := tokenService.GenerateToken(userID)
@@ -74,7 +74,7 @@ func TestParseToken_WrongSecret(t *testing.T) {
 			SecretKey: []byte("test-secret-key-another"),
 		},
 	}
-	wrongTokenService := NewToken(wrongCfg)
+	wrongTokenService := New(wrongCfg)
 
 	parsedPayload, err := wrongTokenService.ParseToken(tokenString)
 	assert.Error(t, err)

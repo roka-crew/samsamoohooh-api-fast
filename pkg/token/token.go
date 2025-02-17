@@ -9,7 +9,7 @@ type Token struct {
 	cfg *config.Config
 }
 
-func NewToken(cfg *config.Config) *Token {
+func New(cfg *config.Config) *Token {
 	return &Token{cfg: cfg}
 }
 
