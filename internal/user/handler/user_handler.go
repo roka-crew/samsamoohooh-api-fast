@@ -54,6 +54,10 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 		return err
 	}
 
+	if err := c.Validate(&request); err != nil {
+		return err
+	}
+
 	createdUser, err := h.userService.CreateUser(c.Request().Context(), request)
 
 	switch {
