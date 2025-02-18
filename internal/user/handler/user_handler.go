@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/internal/user/service"
 	"github.com/roka-crew/pkg/ctxutil"
+	"github.com/roka-crew/pkg/errors"
 	"github.com/roka-crew/presenter"
 	"github.com/roka-crew/router"
 	"github.com/roka-crew/router/middleware"
@@ -50,6 +50,7 @@ func NewUserHandler(
 // @Produce json
 // @Router /users [post]
 // @Success 201 {object} presenter.CreateUserRequest "회원가입에 성공한 사용자 정보"
+// @Failure 409 {object} errors.Error "사용자가 이미 존재함 : user already exists"
 // @Security BearerAuth
 func (h UserHandler) CreateUser(c echo.Context) error {
 	var (
@@ -72,7 +73,7 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 	case err == nil:
 		return c.JSON(http.StatusCreated, response)
 	case errors.Is(err, domain.ErrUserAlreadyExists):
-		return c.NoContent(http.StatusConflict)
+		return errors.Restore(err).SetStatus(http.StatusConflict)
 	default:
 		return err
 	}
@@ -83,6 +84,7 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 // @Summary FindUserByMe ✅
 // @Produce json
 // @Success 200 {object} presenter.FindUserByMeResponse "내 정보 조회에 성공한 사용자 정보"
+// @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [get]
 // @Security BearerAuth
 func (h UserHandler) FindUserByMe(c echo.Context) error {
@@ -103,8 +105,9 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
 	case errors.Is(err, domain.ErrUserNotFound):
-		return c.NoContent(http.StatusNotFound)
+		return errors.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
+
 }

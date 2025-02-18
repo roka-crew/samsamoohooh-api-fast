@@ -10,6 +10,7 @@ import (
 	"github.com/roka-crew/pkg/token"
 	"github.com/roka-crew/router"
 	"github.com/roka-crew/router/middleware"
+	"github.com/roka-crew/router/utils"
 	"go.uber.org/fx"
 )
 
@@ -23,6 +24,7 @@ func main() {
 		fx.Provide(
 			config.New,
 			sqlite.New,
+			utils.NewErrorHandler,
 			token.New,
 			ctxutil.New,
 

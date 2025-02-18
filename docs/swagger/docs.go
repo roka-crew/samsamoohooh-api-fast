@@ -35,6 +35,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/presenter.CreateUserRequest"
                         }
+                    },
+                    "409": {
+                        "description": "사용자가 이미 존재함 : user already exists",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
                     }
                 }
             }
@@ -59,12 +65,35 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/presenter.FindUserByMeResponse"
                         }
+                    },
+                    "404": {
+                        "description": "유저를 찾지 못함: user not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
+        "errors.Error": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "description": "오류의 상세 설명",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "HTTP 상태 코드",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "오류의 짧은 제목",
+                    "type": "string"
+                }
+            }
+        },
         "presenter.CreateUserRequest": {
             "type": "object",
             "required": [

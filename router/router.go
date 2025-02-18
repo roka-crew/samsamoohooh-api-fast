@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/pkg/config"
+	"github.com/roka-crew/router/utils"
 	"github.com/roka-crew/router/validator"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/fx"
@@ -21,6 +22,7 @@ type Router struct {
 func New(
 	cfg *config.Config,
 	lc fx.Lifecycle,
+	errorHandler *utils.ErrorHandler,
 ) *Router {
 	r := Router{
 		Echo: echo.New(),
@@ -29,7 +31,7 @@ func New(
 	// echo configuration
 	r.HideBanner = true
 	r.Validator = validator.New()
-	r.HTTPErrorHandler = errorHandler
+	r.HTTPErrorHandler = errorHandler.ErrorHandler
 
 	r.GET("/swagger/*", echoSwagger.WrapHandler)
 

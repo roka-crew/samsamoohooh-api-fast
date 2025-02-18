@@ -1,4 +1,16 @@
 definitions:
+  errors.Error:
+    properties:
+      detail:
+        description: 오류의 상세 설명
+        type: string
+      status:
+        description: HTTP 상태 코드
+        type: integer
+      title:
+        description: 오류의 짧은 제목
+        type: string
+    type: object
   presenter.CreateUserRequest:
     properties:
       nickname:
@@ -27,6 +39,10 @@ paths:
           description: 회원가입에 성공한 사용자 정보
           schema:
             $ref: '#/definitions/presenter.CreateUserRequest'
+        "409":
+          description: '사용자가 이미 존재함 : user already exists'
+          schema:
+            $ref: '#/definitions/errors.Error'
       security:
       - BearerAuth: []
       summary: CreateUser ✅
@@ -41,6 +57,10 @@ paths:
           description: 내 정보 조회에 성공한 사용자 정보
           schema:
             $ref: '#/definitions/presenter.FindUserByMeResponse'
+        "404":
+          description: '유저를 찾지 못함: user not found'
+          schema:
+            $ref: '#/definitions/errors.Error'
       security:
       - BearerAuth: []
       summary: FindUserByMe ✅

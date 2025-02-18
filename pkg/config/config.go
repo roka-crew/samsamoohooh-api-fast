@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	Listen      string      `yaml:"listen"`
+	Listen string `yaml:"listen"`
+	Env    string `yaml:"env"`
+
 	Token       Token       `yaml:"token"`
 	Persistence Persistence `yaml:"persistence"`
 }
