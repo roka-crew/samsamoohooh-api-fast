@@ -15,6 +15,72 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/issue-token": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "IssueToken - 토큰 발급 ✅",
+                "parameters": [
+                    {
+                        "description": "토큰 발급 요청",
+                        "name": "IssueTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.IssueTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "토큰 발급 성공",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.IssueTokenResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "사용자를 찾을 수 없음 : user not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/validate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Validate - 토큰 유효성 검사 ✅",
+                "responses": {
+                    "200": {
+                        "description": "토큰 유효성 검사 성공",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ValidateResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "사용자를 찾을 수 없음 : user not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "post": {
                 "security": [
@@ -28,12 +94,23 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "CreateUser ✅",
+                "summary": "CreateUser - 사용자 단건 생성 ✅",
+                "parameters": [
+                    {
+                        "description": "사용자 생성 요청",
+                        "name": "CreateUserRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateUserRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "회원가입에 성공한 사용자 정보",
                         "schema": {
-                            "$ref": "#/definitions/presenter.CreateUserRequest"
+                            "$ref": "#/definitions/presenter.CreateUserResponse"
                         }
                     },
                     "409": {
@@ -58,13 +135,74 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "FindUserByMe ✅",
+                "summary": "FindUserByMe - 사용자(나) 단건 조회 ✅",
                 "responses": {
                     "200": {
                         "description": "내 정보 조회에 성공한 사용자 정보",
                         "schema": {
                             "$ref": "#/definitions/presenter.FindUserByMeResponse"
                         }
+                    },
+                    "404": {
+                        "description": "유저를 찾지 못함: user not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "DeleteUserByMe - 사용자(나) 단건 삭제 ✅",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "유저를 찾지 못함: user not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "PatchUserByMe - 사용자(나) 단건 수정 ✅",
+                "parameters": [
+                    {
+                        "description": "사용자 수정 요청",
+                        "name": "PatchUserByMeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.PatchUserByMeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "404": {
                         "description": "유저를 찾지 못함: user not found",
@@ -82,6 +220,10 @@ const docTemplate = `{
             "properties": {
                 "detail": {
                     "description": "오류의 상세 설명",
+                    "type": "string"
+                },
+                "instance": {
+                    "description": "오류가 발생한 특정 인스턴스를 식별하는 데 사용할 수 있는 URI입니다.",
                     "type": "string"
                 },
                 "status": {
@@ -108,7 +250,56 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.CreateUserResponse": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                }
+            }
+        },
         "presenter.FindUserByMeResponse": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.IssueTokenRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.IssueTokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.PatchUserByMeRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ValidateResponse": {
             "type": "object",
             "properties": {
                 "nickname": {

@@ -45,7 +45,7 @@ func NewUserHandler(
 }
 
 // CreateUser
-// @Summary CreateUser - 사용자 단건 생성✅
+// @Summary CreateUser - 사용자 단건 생성 ✅
 // @Tags users
 // @Param CreateUserRequest body presenter.CreateUserRequest true "사용자 생성 요청"
 // @Produce json
@@ -114,13 +114,13 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 }
 
 // PatchUserByMe
-// @Summary PatchUserByMe - 사용자(나) 단건 수정✅
+// @Summary PatchUserByMe - 사용자(나) 단건 수정 ✅
 // @Tags users
 // @Produce json
 // @Param PatchUserByMeRequest body presenter.PatchUserByMeRequest true "사용자 수정 요청"
 // @Success 204
 // @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
-// @Router /users/me [get]
+// @Router /users/me [patch]
 // @Security BearerAuth
 func (h UserHandler) PatchUserByMe(c echo.Context) error {
 	var (
@@ -150,7 +150,7 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 }
 
 // DeleteUserByMe
-// @Summary DeleteUserByMe - 사용자(나) 단건 삭제✅
+// @Summary DeleteUserByMe - 사용자(나) 단건 삭제 ✅
 // @Tags users
 // @Produce json
 // @Success 204

@@ -44,11 +44,11 @@ func NewAuthHandler(
 }
 
 // IssueToken
-// @Summary IssueToken - 토큰 발급✅
+// @Summary IssueToken - 토큰 발급 ✅
 // @Tags auth
-// @Param IssueTokenRequest body presenter.IssueTokenRequest true
+// @Param IssueTokenRequest body presenter.IssueTokenRequest true "토큰 발급 요청"
 // @Produce json
-// @Success 200 {object} presenter.IssueTokenResponse
+// @Success 200 {object} presenter.IssueTokenResponse "토큰 발급 성공"
 // @Failure 404 {object} errors.Error "사용자를 찾을 수 없음 : user not found"
 // @Router /auth/issue-token [post]
 func (h AuthHandler) IssueToken(c echo.Context) error {
@@ -75,10 +75,10 @@ func (h AuthHandler) IssueToken(c echo.Context) error {
 }
 
 // Validate
-// @Summary Validate - 토큰 유효성 검사✅
+// @Summary Validate - 토큰 유효성 검사 ✅
 // @Tags auth
 // @Produce json
-// @Success 200 {object} presenter.ValidateResponse
+// @Success 200 {object} presenter.ValidateResponse "토큰 유효성 검사 성공"
 // @Failure 404 {object} errors.Error "사용자를 찾을 수 없음 : user not found"
 // @Router /auth/validate [post]
 // @Security BearerAuth

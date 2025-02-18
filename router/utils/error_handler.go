@@ -27,10 +27,8 @@ func (h ErrorHandler) ErrorHandler(err error, c echo.Context) {
 		e.Title = http.StatusText(e.StatusCode())
 		e.Instance = c.Path()
 
-		if e.Status == http.StatusInternalServerError {
-			if h.cfg.Env == "dev" {
-				log.Printf("[ERROR] occured error: %+v\n", e)
-			}
+		if h.cfg.Env == "dev" {
+			log.Printf("[ERROR] occured error: %+v\n", e)
 		}
 
 		_ = c.JSON(e.StatusCode(), e)
