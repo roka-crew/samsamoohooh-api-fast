@@ -2,6 +2,7 @@ package token
 
 import (
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/config"
 )
 
@@ -37,7 +38,7 @@ func (t *Token) ParseToken(tokenString string) (*Payload, error) {
 
 	payload, ok := token.Claims.(*Payload)
 	if !ok {
-		return nil, jwt.ErrInvalidKey
+		return nil, domain.ErrInvalidToken
 	}
 
 	return payload, nil

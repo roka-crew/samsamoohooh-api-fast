@@ -61,3 +61,53 @@ func (u UserService) FindUserByMe(ctx context.Context, reqeust presenter.FindUse
 		Resolution: listUsers.First().Resolution,
 	}, nil
 }
+
+func (u UserService) PatchUserByMe(ctx context.Context, request presenter.PatchUserByMeRequest) error {
+	// 1. 해당 사용자가 존재하는지 확인
+	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
+		IDs:   []uint{request.RequestUserID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+	if listUsers.IsEmpty() {
+		return domain.ErrUserNotFound
+	}
+
+	// 2. 사용자 정보 수정
+	err = u.userStore.PatchUser(ctx, presenter.PatchUserParams{
+		UserID:     &request.RequestUserID,
+		Nickname:   request.Nickname,
+		Resolution: request.Resolution,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u UserService) DeleteUserByMe(ctx context.Context, request presenter.DeleteUserByMeRequest) error {
+	// 1. 해당 사용자가 존재하는지 확인
+	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
+		IDs:   []uint{request.RequestUserID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+	if listUsers.IsEmpty() {
+		return domain.ErrUserNotFound
+	}
+
+	// 2. 사용자 정보 삭제
+	err = u.userStore.DeleteUser(ctx, presenter.DeleteUserParams{
+		UserID: request.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
