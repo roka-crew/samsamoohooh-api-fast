@@ -86,3 +86,163 @@ func (s GroupService) ListGroups(ctx context.Context, request presenter.ListGrou
 		Groups: responseGroups,
 	}, nil
 }
+
+func (s GroupService) PatchGroup(ctx context.Context, request presenter.PatchGroupRequest) error {
+	// 1. 구룹이 존재하는지 확인
+	listGroup, err := s.groupStore.ListGroups(ctx, presenter.ListGroupsParams{
+		IDs:   []uint{request.GroupID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+	if listGroup.IsEmpty() {
+		return domain.ErrGroupNotFound
+	}
+
+	// 2. 수정 요청한 모임이 내 모임이 맞는지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		GroupID: request.GroupID,
+		UserID:  request.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return domain.ErrGroupNotOwned
+	}
+
+	// 3s. 모임 수정
+	err = s.groupStore.PatchGroup(ctx, presenter.PatchGroupParams{
+		GroupID:          request.GroupID,
+		BookTitle:        request.BookTitle,
+		BookAuthor:       request.BookAuthor,
+		BookPageMax:      request.BookPageMax,
+		BookPageCount:    request.BookPageCount,
+		BookPublisher:    request.BookPublisher,
+		BookIntroduction: request.BookIntroduction,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s GroupService) DeleteGroup(ctx context.Context, reqeust presenter.DeleteGroupRequest) error {
+	// 1. 구룹이 존재하는지 확인
+	listGroup, err := s.groupStore.ListGroups(ctx, presenter.ListGroupsParams{
+		IDs:       []uint{reqeust.GroupID},
+		WithUsers: true,
+		Limit:     1,
+	})
+	if err != nil {
+		return err
+	}
+
+	if listGroup.IsEmpty() {
+		return domain.ErrGroupNotFound
+	}
+
+	// 2. 삭제 요청한 모임이 내 모임이 맞는지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		GroupID: reqeust.GroupID,
+		UserID:  reqeust.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return domain.ErrGroupNotOwned
+	}
+
+	// 3. 해당 구룹의 사용자들이 있는지 확인
+	if len(listGroup.First().Users) >= 1 {
+		return domain.ErrGroupHasUsers
+	}
+
+	// 4. 해당 구룹 삭제
+	err = s.groupStore.DeleteGroup(ctx, presenter.DeleteGroupParams{
+		GroupID: reqeust.GroupID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s GroupService) LeaveGroup(ctx context.Context, reqeust presenter.LeaveGroupRequest) error {
+	// 1. 구룹이 존재하는지 확인
+	listGroup, err := s.groupStore.ListGroups(ctx, presenter.ListGroupsParams{
+		IDs:   []uint{reqeust.GroupID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+
+	if listGroup.IsEmpty() {
+		return domain.ErrGroupNotFound
+	}
+
+	// 2. 나가려는 모임이 내 모임이 맞는지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		GroupID: reqeust.GroupID,
+		UserID:  reqeust.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return domain.ErrGroupNotOwned
+	}
+
+	// 3. 해당 구룹에서 나가기
+	err = s.groupStore.RemoveGroupUser(ctx, presenter.RemoveGroupUserParams{
+		GroupID: reqeust.GroupID,
+		UserID:  reqeust.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s GroupService) JoinGroup(ctx context.Context, request presenter.JoinGroupRequest) error {
+	// 1. 구룹이 존재하는지 확인
+	listGroup, err := s.groupStore.ListGroups(ctx, presenter.ListGroupsParams{
+		IDs:   []uint{request.GroupID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+	if listGroup.IsEmpty() {
+		return domain.ErrGroupNotFound
+	}
+
+	// 2. 이미 가입한 모임인지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		GroupID: request.GroupID,
+		UserID:  request.RequestUserID,
+	})
+	if err != nil {
+		return err
+	}
+	if exists {
+		return domain.ErrGroupAlreadyJoined
+	}
+
+	// 3. 모임 가입
+	err = s.groupStore.AddGroupUsers(ctx, presenter.AddGroupUsersParams{
+		GroupID: request.GroupID,
+		UserIDs: []uint{request.RequestUserID},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

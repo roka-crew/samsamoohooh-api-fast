@@ -30,3 +30,13 @@ type DeleteUserParams struct {
 type ListUserGroupsParams struct {
 	UserID uint
 }
+
+type RemoveGroupUserParams struct {
+	UserID  uint
+	GroupID uint
+}
+
+type ExistsGroupUserParams struct {
+	GroupID uint
+	UserID  uint
+}

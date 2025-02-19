@@ -36,6 +36,10 @@ func NewGroupHandler(
 	{
 		groups.GET("", groupHandler.ListGroups)
 		groups.POST("", groupHandler.CreateGroup)
+		groups.PATCH("/:group-id", groupHandler.PatchGroup)
+		// groups.DELETE("/:group-id", groupHandler.DeleteGroup)
+		groups.POST("/:group-id/leave", groupHandler.LeaveGroup)
+		groups.POST("/:group-id/join", groupHandler.JoinGroup)
 	}
 
 	return groupHandler
@@ -109,17 +113,166 @@ func (h GroupHandler) ListGroups(c echo.Context) error {
 	}
 }
 
-func (h GroupHandler) PatchGropu(c echo.Context) error {
-	var ()
-	return nil
+// PatchGroup
+// @Summary Patch a group - 그룹 단건 수정 ✅
+// @Tags groups
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param group-id path string true "Group ID"
+// @Param PatchGroupRequest body presenter.PatchGroupRequest true "PatchGroupRequest"
+// @Success 204
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Router /groups/{group-id} [patch]
+// @Security Bearer
+func (h GroupHandler) PatchGroup(c echo.Context) error {
+	var (
+		request presenter.PatchGroupRequest
+		err     error
+	)
+
+	if err = c.Bind(&request); err != nil {
+		return err
+	}
+
+	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	if err != nil {
+		return err
+	}
+
+	err = h.groupService.PatchGroup(c.Request().Context(), request)
+
+	switch {
+	case err == nil:
+		return c.NoContent(http.StatusNoContent)
+	case errors.Is(err, domain.ErrGroupNotOwned):
+		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
+	case errors.Is(err, domain.ErrGroupNotFound):
+		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+	default:
+		return err
+	}
 }
 
-func (h GroupHandler) DeleteGroup(c echo.Context) error {
-	var ()
-	return nil
-}
+// DeleteGroup
+// @Summary Delete a group - 그룹 단건 삭제 ✅
+// @Tags groups
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param group-id path string true "Group ID"
+// @Success 204
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 403 {object} errors.Error "그룹에 사용자가 있음: group has users"
+// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Router /groups/{group-id} [delete]
+// @Security Bearer
+// func (h GroupHandler) DeleteGroup(c echo.Context) error {
+// 	var (
+// 		request presenter.DeleteGroupRequest
+// 		err     error
+// 	)
 
+// 	if err := c.Bind(&request); err != nil {
+// 		return err
+// 	}
+
+// 	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = h.groupService.DeleteGroup(c.Request().Context(), request)
+
+// 	switch {
+// 	case err == nil:
+// 		return c.NoContent(http.StatusNoContent)
+// 	case errors.Is(err, domain.ErrGroupNotOwned):
+// 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
+// 	case errors.Is(err, domain.ErrGroupHasUsers):
+// 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 사용자가 있음")
+// 	case errors.Is(err, domain.ErrGroupNotFound):
+// 		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+// 	default:
+// 		return err
+// 	}
+// }
+
+// LeaveGroup
+// @Summary Leave a group - 그룹 단건 탈퇴 ✅
+// @Tags groups
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param group-id path string true "Group ID"
+// @Success 204
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Router /groups/{group-id}/leave [post]
+// @Security Bearer
 func (h GroupHandler) LeaveGroup(c echo.Context) error {
-	var ()
-	return nil
+	var (
+		request presenter.LeaveGroupRequest
+		err     error
+	)
+
+	if err := c.Bind(&request); err != nil {
+		return err
+	}
+
+	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	if err != nil {
+		return err
+	}
+
+	err = h.groupService.LeaveGroup(c.Request().Context(), request)
+
+	switch {
+	case err == nil:
+		return c.NoContent(http.StatusNoContent)
+	case errors.Is(err, domain.ErrGroupNotOwned):
+		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
+	case errors.Is(err, domain.ErrGroupNotFound):
+		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+	default:
+		return err
+	}
+}
+
+// JoinGroup
+// @Summary Join a group - 그룹 단건 참여 ✅
+// @Tags groups
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param group-id path string true "Group ID"
+// @Success 204
+// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Failure 403 {object} errors.Error "그룹에 이미 참여함: group already joined"
+// @Router /groups/{group-id}/join [post]
+// @Security Bearer
+func (h GroupHandler) JoinGroup(c echo.Context) error {
+	var (
+		request presenter.JoinGroupRequest
+		err     error
+	)
+
+	if err := c.Bind(&request); err != nil {
+		return err
+	}
+
+	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	if err != nil {
+		return err
+	}
+
+	err = h.groupService.JoinGroup(c.Request().Context(), request)
+
+	switch {
+	case err == nil:
+		return c.NoContent(http.StatusNoContent)
+	case errors.Is(err, domain.ErrGroupNotFound):
+		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+	case errors.Is(err, domain.ErrGroupAlreadyJoined):
+		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 이미 참여함")
+	default:
+		return err
+	}
 }

@@ -36,3 +36,29 @@ type GroupsResponse struct {
 	BookPublisher    *string `json:"bookPublisher,omitempty"`
 	BookIntroduction *string `json:"bookIntroduction,omitempty"`
 }
+
+type PatchGroupRequest struct {
+	RequestUserID    uint    `swaggerignore:"true"`
+	GroupID          uint    `param:"group-id"`
+	BookTitle        *string `json:"bookTitle" validate:"omitempty"`
+	BookAuthor       *string `json:"bookAuthor" validate:"omitempty"`
+	BookPageMax      *int    `json:"bookPageMax" validate:"omitempty"`
+	BookPageCount    *int    `json:"bookPageCount" validate:"omitempty"`
+	BookPublisher    *string `json:"bookPublisher,omitempty" validate:"omitempty"`
+	BookIntroduction *string `json:"bookIntroduction,omitempty" validate:"omitempty"`
+}
+
+type DeleteGroupRequest struct {
+	RequestUserID uint `swaggerignore:"true"`
+	GroupID       uint `param:"group-id"`
+}
+
+type LeaveGroupRequest struct {
+	RequestUserID uint `swaggerignore:"true"`
+	GroupID       uint `param:"group-id"`
+}
+
+type JoinGroupRequest struct {
+	RequestUserID uint `swaggerignore:"true"`
+	GroupID       uint `param:"group-id"`
+}

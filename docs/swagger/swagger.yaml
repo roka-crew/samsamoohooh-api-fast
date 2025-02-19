@@ -101,6 +101,23 @@ definitions:
           $ref: '#/definitions/presenter.GroupsResponse'
         type: array
     type: object
+  presenter.PatchGroupRequest:
+    properties:
+      bookAuthor:
+        type: string
+      bookIntroduction:
+        type: string
+      bookPageCount:
+        type: integer
+      bookPageMax:
+        type: integer
+      bookPublisher:
+        type: string
+      bookTitle:
+        type: string
+      groupID:
+        type: integer
+    type: object
   presenter.PatchUserByMeRequest:
     properties:
       nickname:
@@ -206,6 +223,105 @@ paths:
       security:
       - Bearer: []
       summary: Create a group - 그룹 단건 생성 및 참여 ✅
+      tags:
+      - groups
+  /groups/{group-id}:
+    patch:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Group ID
+        in: path
+        name: group-id
+        required: true
+        type: string
+      - description: PatchGroupRequest
+        in: body
+        name: PatchGroupRequest
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.PatchGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: '그룹 소유자가 아님: group not owned'
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: '그룹을 찾지 못함: group not found'
+          schema:
+            $ref: '#/definitions/errors.Error'
+      security:
+      - Bearer: []
+      summary: Patch a group - 그룹 단건 수정 ✅
+      tags:
+      - groups
+  /groups/{group-id}/join:
+    post:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Group ID
+        in: path
+        name: group-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: '그룹에 이미 참여함: group already joined'
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: '그룹을 찾지 못함: group not found'
+          schema:
+            $ref: '#/definitions/errors.Error'
+      security:
+      - Bearer: []
+      summary: Join a group - 그룹 단건 참여 ✅
+      tags:
+      - groups
+  /groups/{group-id}/leave:
+    post:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Group ID
+        in: path
+        name: group-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: '그룹 소유자가 아님: group not owned'
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: '그룹을 찾지 못함: group not found'
+          schema:
+            $ref: '#/definitions/errors.Error'
+      security:
+      - Bearer: []
+      summary: Leave a group - 그룹 단건 탈퇴 ✅
       tags:
       - groups
   /users:
