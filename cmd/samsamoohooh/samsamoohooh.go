@@ -3,6 +3,9 @@ package main
 import (
 	authHandler "github.com/roka-crew/internal/auth/handler"
 	authService "github.com/roka-crew/internal/auth/service"
+	groupHandler "github.com/roka-crew/internal/group/handler"
+	groupService "github.com/roka-crew/internal/group/service"
+	groupStore "github.com/roka-crew/internal/group/store"
 	userHandler "github.com/roka-crew/internal/user/handler"
 	userService "github.com/roka-crew/internal/user/service"
 	userStore "github.com/roka-crew/internal/user/store"
@@ -36,6 +39,10 @@ func main() {
 			userService.NewUserService,
 			userStore.NewUserStore,
 
+			groupHandler.NewGroupHandler,
+			groupService.NewGroupService,
+			groupStore.NewGroupStore,
+
 			authHandler.NewAuthHandler,
 			authService.NewAuthService,
 
@@ -45,9 +52,13 @@ func main() {
 			func(db *sqlite.SQLite) {},
 
 			userHandler.NewUserHandler,
+			groupHandler.NewGroupHandler,
 			authHandler.NewAuthHandler,
 
 			func(r *router.Router) {},
 		),
+
+		// configs
+		fx.NopLogger,
 	).Run()
 }

@@ -13,7 +13,10 @@ type ListUsersParams struct {
 }
 
 type PatchUserParams struct {
-	UserID     *uint
+	// condition
+	UserID *uint
+
+	// change
 	Nickname   *string
 	Resolution *string
 }
@@ -22,4 +25,8 @@ type DeleteUserParams struct {
 	UserID         uint
 	Nickname       string
 	WithHardDelete bool
+}
+
+type ListUserGroupsParams struct {
+	UserID uint
 }

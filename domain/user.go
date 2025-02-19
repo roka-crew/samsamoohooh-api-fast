@@ -22,6 +22,6 @@ type User struct {
 	Nickname   string `gorm:"uniqueIndex"`
 	Resolution *string
 
-	Gropus []Group `gorm:"many2many:user_group_mapper;"`
+	Groups []Group `gorm:"many2many:user_group_mapper;"`
 	Topics []Topic
 }

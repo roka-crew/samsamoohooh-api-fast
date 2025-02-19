@@ -14,10 +14,9 @@ import (
 )
 
 type UserHandler struct {
-	userService    *service.UserService
-	router         *router.Router
-	authMiddleware *middleware.AuthMiddleware
-	ctxutil        *ctxutil.CtxUtil
+	userService *service.UserService
+	router      *router.Router
+	ctxutil     *ctxutil.CtxUtil
 }
 
 func NewUserHandler(
@@ -27,15 +26,14 @@ func NewUserHandler(
 	ctxutil *ctxutil.CtxUtil,
 ) *UserHandler {
 	userHandler := &UserHandler{
-		userService:    userService,
-		router:         router,
-		authMiddleware: authMiddleware,
-		ctxutil:        ctxutil,
+		userService: userService,
+		router:      router,
+		ctxutil:     ctxutil,
 	}
 
 	users := router.Group("/users")
 	{
-		users.POST("/", userHandler.CreateUser)
+		users.POST("", userHandler.CreateUser)
 		users.GET("/me", userHandler.FindUserByMe, authMiddleware.AuthenticateRequest)
 		users.PATCH("/me", userHandler.PatchUserByMe, authMiddleware.AuthenticateRequest)
 		users.DELETE("/me", userHandler.DeleteUserByMe, authMiddleware.AuthenticateRequest)
@@ -56,7 +54,7 @@ func NewUserHandler(
 func (h UserHandler) CreateUser(c echo.Context) error {
 	var (
 		request  presenter.CreateUserRequest
-		response *presenter.CreateUserResponse
+		response presenter.CreateUserResponse
 		err      error
 	)
 
@@ -84,6 +82,7 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 // @Summary FindUserByMe - 사용자(나) 단건 조회 ✅
 // @Tags users
 // @Produce json
+// @Param Authorization header string true "Bearer token"
 // @Success 200 {object} presenter.FindUserByMeResponse "내 정보 조회에 성공한 사용자 정보"
 // @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [get]
@@ -91,7 +90,7 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 func (h UserHandler) FindUserByMe(c echo.Context) error {
 	var (
 		request  presenter.FindUserByMeRequest
-		response *presenter.FindUserByMeResponse
+		response presenter.FindUserByMeResponse
 		err      error
 	)
 
@@ -117,6 +116,7 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 // @Summary PatchUserByMe - 사용자(나) 단건 수정 ✅
 // @Tags users
 // @Produce json
+// @Param Authorization header string true "Bearer token"
 // @Param PatchUserByMeRequest body presenter.PatchUserByMeRequest true "사용자 수정 요청"
 // @Success 204
 // @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
@@ -153,6 +153,7 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 // @Summary DeleteUserByMe - 사용자(나) 단건 삭제 ✅
 // @Tags users
 // @Produce json
+// @Param Authorization header string true "Bearer token"
 // @Success 204
 // @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [delete]

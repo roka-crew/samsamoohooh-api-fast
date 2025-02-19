@@ -81,6 +81,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/groups": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "List groups - 그룹 다건 조회 ✅",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ListGroupsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "그룹을 찾지 못함: group not found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create a group - 그룹 단건 생성 및 참여 ✅",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "CreateGroupRequest",
+                        "name": "CreateGroupRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateGroupResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "post": {
                 "security": [
@@ -136,6 +215,15 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "FindUserByMe - 사용자(나) 단건 조회 ✅",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "내 정보 조회에 성공한 사용자 정보",
@@ -164,6 +252,15 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "DeleteUserByMe - 사용자(나) 단건 삭제 ✅",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -190,6 +287,13 @@ const docTemplate = `{
                 ],
                 "summary": "PatchUserByMe - 사용자(나) 단건 수정 ✅",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "사용자 수정 요청",
                         "name": "PatchUserByMeRequest",
@@ -236,6 +340,52 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.CreateGroupRequest": {
+            "type": "object",
+            "properties": {
+                "bookAuthor": {
+                    "type": "string"
+                },
+                "bookIntroduction": {
+                    "type": "string"
+                },
+                "bookPageCount": {
+                    "type": "integer"
+                },
+                "bookPageMax": {
+                    "type": "integer"
+                },
+                "bookPublisher": {
+                    "type": "string"
+                },
+                "bookTitle": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.CreateGroupResponse": {
+            "type": "object",
+            "properties": {
+                "bookAuthor": {
+                    "type": "string"
+                },
+                "bookIntroduction": {
+                    "type": "string"
+                },
+                "bookPageCount": {
+                    "type": "integer"
+                },
+                "bookPageMax": {
+                    "type": "integer"
+                },
+                "bookPublisher": {
+                    "type": "string"
+                },
+                "bookTitle": {
+                    "type": "string"
+                }
+            }
+        },
         "presenter.CreateUserRequest": {
             "type": "object",
             "required": [
@@ -272,6 +422,32 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.GroupsResponse": {
+            "type": "object",
+            "properties": {
+                "bookAuthor": {
+                    "type": "string"
+                },
+                "bookIntroduction": {
+                    "type": "string"
+                },
+                "bookPageCount": {
+                    "type": "integer"
+                },
+                "bookPageMax": {
+                    "type": "integer"
+                },
+                "bookPublisher": {
+                    "type": "string"
+                },
+                "bookTitle": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "presenter.IssueTokenRequest": {
             "type": "object",
             "properties": {
@@ -285,6 +461,17 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "presenter.ListGroupsResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.GroupsResponse"
+                    }
                 }
             }
         },

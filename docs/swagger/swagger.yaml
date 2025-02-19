@@ -14,6 +14,36 @@ definitions:
         description: 오류의 짧은 제목
         type: string
     type: object
+  presenter.CreateGroupRequest:
+    properties:
+      bookAuthor:
+        type: string
+      bookIntroduction:
+        type: string
+      bookPageCount:
+        type: integer
+      bookPageMax:
+        type: integer
+      bookPublisher:
+        type: string
+      bookTitle:
+        type: string
+    type: object
+  presenter.CreateGroupResponse:
+    properties:
+      bookAuthor:
+        type: string
+      bookIntroduction:
+        type: string
+      bookPageCount:
+        type: integer
+      bookPageMax:
+        type: integer
+      bookPublisher:
+        type: string
+      bookTitle:
+        type: string
+    type: object
   presenter.CreateUserRequest:
     properties:
       nickname:
@@ -37,6 +67,23 @@ definitions:
       resolution:
         type: string
     type: object
+  presenter.GroupsResponse:
+    properties:
+      bookAuthor:
+        type: string
+      bookIntroduction:
+        type: string
+      bookPageCount:
+        type: integer
+      bookPageMax:
+        type: integer
+      bookPublisher:
+        type: string
+      bookTitle:
+        type: string
+      id:
+        type: integer
+    type: object
   presenter.IssueTokenRequest:
     properties:
       nickname:
@@ -46,6 +93,13 @@ definitions:
     properties:
       token:
         type: string
+    type: object
+  presenter.ListGroupsResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/presenter.GroupsResponse'
+        type: array
     type: object
   presenter.PatchUserByMeRequest:
     properties:
@@ -105,6 +159,55 @@ paths:
       summary: Validate - 토큰 유효성 검사 ✅
       tags:
       - auth
+  /groups:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/presenter.ListGroupsResponse'
+        "404":
+          description: '그룹을 찾지 못함: group not found'
+          schema:
+            $ref: '#/definitions/errors.Error'
+      security:
+      - Bearer: []
+      summary: List groups - 그룹 다건 조회 ✅
+      tags:
+      - groups
+    post:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: CreateGroupRequest
+        in: body
+        name: CreateGroupRequest
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/presenter.CreateGroupResponse'
+      security:
+      - Bearer: []
+      summary: Create a group - 그룹 단건 생성 및 참여 ✅
+      tags:
+      - groups
   /users:
     post:
       parameters:
@@ -132,6 +235,12 @@ paths:
       - users
   /users/me:
     delete:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -147,6 +256,12 @@ paths:
       tags:
       - users
     get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -165,6 +280,11 @@ paths:
       - users
     patch:
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 사용자 수정 요청
         in: body
         name: PatchUserByMeRequest

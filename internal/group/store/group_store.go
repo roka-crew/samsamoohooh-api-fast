@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/roka-crew/domain"
+	"github.com/roka-crew/pkg/errors"
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
 	"gorm.io/gorm"
@@ -13,20 +14,20 @@ type GroupStore struct {
 	db *sqlite.SQLite
 }
 
-func NewGormStore(db *sqlite.SQLite) *GroupStore {
+func NewGroupStore(db *sqlite.SQLite) *GroupStore {
 	return &GroupStore{
 		db: db,
 	}
 }
 
-func (s GroupStore) CreateGroup(ctx context.Context, params presenter.CreateGroupParams) (*domain.Group, error) {
+func (s GroupStore) CreateGroup(ctx context.Context, params presenter.CreateGroupParams) (domain.Group, error) {
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return nil, err
+		return domain.Group{}, errors.NewInternalError(err)
 	}
 
-	return &params, nil
+	return params, nil
 }
 
 func (s GroupStore) ListGroups(ctx context.Context, params presenter.ListGroupsParams) (domain.Groups, error) {
@@ -50,7 +51,7 @@ func (s GroupStore) ListGroups(ctx context.Context, params presenter.ListGroupsP
 
 	var groups domain.Groups
 	if err := db.Find(&groups).Error; err != nil {
-		return nil, err
+		return nil, errors.InteralError(err)
 	}
 
 	return groups, nil
@@ -65,11 +66,20 @@ func (s GroupStore) DeleteGroup(ctx context.Context) error {
 }
 
 func (s GroupStore) ListGroupUsers(ctx context.Context, params presenter.ListGroupUsersParams) (domain.Users, error) {
-	db := s.db.WithContext(ctx)
+	db := s.db.WithContext(ctx).Table("users").
+		Select("users.*").
+		Joins("JOIN user_group_mapper ON users.id = user_group_mapper.user_id")
+
+	if params.GroupID > 0 {
+		db = db.Where("user_group_mapper.group_id = ?", params.GroupID)
+	}
+	if len(params.UserIDs) > 0 {
+		db = db.Where("users.id IN ?", params.UserIDs)
+	}
 
 	var users domain.Users
-	if err := db.Model(&domain.Group{Model: gorm.Model{ID: params.GroupID}}).Association("Users").Find(&users); err != nil {
-		return nil, err
+	if err := db.Find(&users).Error; err != nil {
+		return domain.Users{}, err
 	}
 
 	return users, nil
@@ -78,15 +88,14 @@ func (s GroupStore) ListGroupUsers(ctx context.Context, params presenter.ListGro
 func (s GroupStore) AddGroupUsers(ctx context.Context, params presenter.AddGroupUsersParams) error {
 	db := s.db.WithContext(ctx)
 
-	// TODO: 어떻게 처리할 지 고민하기
 	// 1. users 조회
 	var users domain.Users
 	if err := db.Where("id IN ?", params.UserIDs).Find(&users).Error; err != nil {
-		return err
+		return errors.InteralError(err)
 	}
 
 	if err := db.Model(&domain.Group{Model: gorm.Model{ID: params.GroupID}}).Association("Users").Append(&users); err != nil {
-		return err
+		return errors.InteralError(err)
 	}
 
 	return nil

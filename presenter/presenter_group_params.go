@@ -18,5 +18,5 @@ type AddGroupUsersParams struct {
 
 type ListGroupUsersParams struct {
 	GroupID uint
-	UserID  []uint
+	UserIDs []uint
 }

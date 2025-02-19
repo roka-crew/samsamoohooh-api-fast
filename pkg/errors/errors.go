@@ -25,6 +25,13 @@ func New(message string) Error {
 	}
 }
 
+func InteralError(err error) Error {
+	return Error{
+		Err:    err,
+		Status: http.StatusInternalServerError,
+	}
+}
+
 func NewInternalError(err error) Error {
 	return Error{
 		Err:    err,

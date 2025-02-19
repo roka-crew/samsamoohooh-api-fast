@@ -2,8 +2,10 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/roka-crew/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/persistence/sqlite"
@@ -21,14 +23,14 @@ func NewUserStore(
 	return &UserStore{db: db}
 }
 
-func (s UserStore) CreateUser(ctx context.Context, params presenter.CreateUserParams) (*domain.User, error) {
+func (s UserStore) CreateUser(ctx context.Context, params presenter.CreateUserParams) (domain.User, error) {
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return nil, errors.NewInternalError(err)
+		return domain.User{}, errors.NewInternalError(err)
 	}
 
-	return &params, nil
+	return params, nil
 }
 
 func (s UserStore) ListUsers(ctx context.Context, params presenter.ListUsersParams) (domain.Users, error) {
@@ -56,7 +58,7 @@ func (s UserStore) ListUsers(ctx context.Context, params presenter.ListUsersPara
 
 	var users []domain.User
 	if err := db.Find(&users).Error; err != nil {
-		return nil, errors.NewInternalError(err)
+		return domain.Users{}, errors.NewInternalError(err)
 	}
 
 	return users, nil
@@ -74,7 +76,7 @@ func (s UserStore) PatchUser(ctx context.Context, params presenter.PatchUserPara
 		user.Resolution = params.Resolution
 	}
 
-	if err := db.Updates(user).Error; err != nil {
+	if err := db.Where("id = ?", params.UserID).Updates(user).Error; err != nil {
 		return errors.NewInternalError(err)
 	}
 
@@ -101,4 +103,16 @@ func (s UserStore) DeleteUser(ctx context.Context, params presenter.DeleteUserPa
 	}
 
 	return nil
+}
+
+func (s UserStore) ListUserGroups(ctx context.Context, params presenter.ListUserGroupsParams) (domain.Groups, error) {
+	db := s.db.WithContext(ctx)
+
+	var groups domain.Groups
+	if err := db.Model(&domain.User{Model: gorm.Model{ID: params.UserID}}).Association("Groups").Find(&groups); err != nil {
+		fmt.Println("err: ", err)
+		return domain.Groups{}, errors.InteralError(err)
+	}
+
+	return groups, nil
 }
