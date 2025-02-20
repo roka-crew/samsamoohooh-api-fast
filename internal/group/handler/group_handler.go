@@ -16,7 +16,6 @@ import (
 
 type GroupHandler struct {
 	ctxutil      *ctxutil.CtxUtil
-	router       *router.Router
 	groupService *service.GroupService
 }
 
@@ -28,7 +27,6 @@ func NewGroupHandler(
 ) *GroupHandler {
 	groupHandler := &GroupHandler{
 		ctxutil:      ctxutil,
-		router:       router,
 		groupService: groupService,
 	}
 
@@ -121,7 +119,7 @@ func (h GroupHandler) ListGroups(c echo.Context) error {
 // @Param group-id path string true "Group ID"
 // @Param PatchGroupRequest body presenter.PatchGroupRequest true "PatchGroupRequest"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
 // @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
 // @Router /groups/{group-id} [patch]
 // @Security Bearer
@@ -145,7 +143,7 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotOwned):
+	case errors.Is(err, domain.ErrGroupNotMember):
 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
 	case errors.Is(err, domain.ErrGroupNotFound):
 		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
@@ -161,7 +159,7 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param group-id path string true "Group ID"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
 // @Failure 403 {object} errors.Error "그룹에 사용자가 있음: group has users"
 // @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
 // @Router /groups/{group-id} [delete]
@@ -204,7 +202,7 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param group-id path string true "Group ID"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not owned"
+// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
 // @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
 // @Router /groups/{group-id}/leave [post]
 // @Security Bearer
@@ -228,7 +226,7 @@ func (h GroupHandler) LeaveGroup(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotOwned):
+	case errors.Is(err, domain.ErrGroupNotMember):
 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
 	case errors.Is(err, domain.ErrGroupNotFound):
 		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")

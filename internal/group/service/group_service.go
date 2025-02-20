@@ -109,7 +109,7 @@ func (s GroupService) PatchGroup(ctx context.Context, request presenter.PatchGro
 		return err
 	}
 	if !exists {
-		return domain.ErrGroupNotOwned
+		return domain.ErrGroupNotMember
 	}
 
 	// 3s. 모임 수정
@@ -153,7 +153,7 @@ func (s GroupService) DeleteGroup(ctx context.Context, reqeust presenter.DeleteG
 		return err
 	}
 	if !exists {
-		return domain.ErrGroupNotOwned
+		return domain.ErrGroupNotMember
 	}
 
 	// 3. 해당 구룹의 사용자들이 있는지 확인
@@ -175,8 +175,9 @@ func (s GroupService) DeleteGroup(ctx context.Context, reqeust presenter.DeleteG
 func (s GroupService) LeaveGroup(ctx context.Context, reqeust presenter.LeaveGroupRequest) error {
 	// 1. 구룹이 존재하는지 확인
 	listGroup, err := s.groupStore.ListGroups(ctx, presenter.ListGroupsParams{
-		IDs:   []uint{reqeust.GroupID},
-		Limit: 1,
+		IDs:       []uint{reqeust.GroupID},
+		Limit:     1,
+		WithUsers: true,
 	})
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func (s GroupService) LeaveGroup(ctx context.Context, reqeust presenter.LeaveGro
 		return err
 	}
 	if !exists {
-		return domain.ErrGroupNotOwned
+		return domain.ErrGroupNotMember
 	}
 
 	// 3. 해당 구룹에서 나가기
@@ -205,6 +206,17 @@ func (s GroupService) LeaveGroup(ctx context.Context, reqeust presenter.LeaveGro
 	})
 	if err != nil {
 		return err
+	}
+
+	// 4. 해당 구룹의 사용자들이 있는지 확인
+	if len(listGroup.First().Users) < 1 {
+		// 5. 해당 구룹 삭제
+		err = s.groupStore.DeleteGroup(ctx, presenter.DeleteGroupParams{
+			GroupID: reqeust.GroupID,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

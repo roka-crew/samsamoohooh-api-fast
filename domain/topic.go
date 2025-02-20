@@ -12,3 +12,16 @@ type Topic struct {
 	GoalID int
 	UserID int
 }
+
+type Topics []Topic
+
+func (t Topics) IsEmpty() bool {
+	return len(t) == 0
+}
+
+func (t Topics) First() Topic {
+	if t.IsEmpty() {
+		return Topic{}
+	}
+	return t[0]
+}
