@@ -1,6 +1,7 @@
 package presenter
 
 import (
+	"github.com/roka-crew/pkg/persistence"
 	"time"
 
 	"github.com/roka-crew/domain"
@@ -9,11 +10,12 @@ import (
 type CreateGoalParams = domain.Goal
 
 type ListGoalsParams struct {
-	IDs         []uint
-	GroupIDs    []uint
-	Limit       int
-	GteDeadline time.Time
-	WithTopcis  bool
+	IDs           []uint
+	GroupIDs      []uint
+	Limit         int
+	DeadlineOrder persistence.Order
+	GteDeadline   time.Time
+	WithTopics    bool
 }
 
 type PatchGoalParams struct {

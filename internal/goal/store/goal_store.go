@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/pkg/errors"
@@ -42,7 +43,11 @@ func (s GoalStore) ListGoals(ctx context.Context, params presenter.ListGoalsPara
 		db = db.Where("group_id IN ?", params.GroupIDs)
 	}
 
-	if params.WithTopcis {
+	if params.DeadlineOrder != "" {
+		db = db.Order(fmt.Sprintf("deadline %s", params.DeadlineOrder))
+	}
+
+	if params.WithTopics {
 		db = db.Preload("Topics")
 	}
 

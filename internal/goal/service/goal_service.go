@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"github.com/roka-crew/pkg/persistence"
+	"time"
 
 	"github.com/roka-crew/domain"
 	goalStore "github.com/roka-crew/internal/goal/store"
@@ -37,20 +39,52 @@ func (s GoalService) CreateGoal(ctx context.Context, request presenter.CreateGoa
 		return presenter.CreateGoalResponse{}, domain.ErrGroupNotMember
 	}
 
-	// TODO: 로직 어떻게 변경할 건지 생각하기
-	// (2) Deadline 보다 이상인 Goal이 있는지 확인
-	// 목표는 진행중인 목표가 없어야지만 가능하다.
-	goals, err := s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
-		GroupIDs:    []uint{request.GroupID},
-		GteDeadline: request.Deadline,
+	now := time.Now()
+	// (2) 데드라인 유효성 검사
+	// 0. 아래 조건들을 만족해야지만 목표를 생성할 수 있다.
+	// 1. 지금 시각 기준으로, 요청자의 구룹 목표의 최신 데드라인 과거어야 한다.
+	// 2. 지금 시각 기준으로, 생성하고자 하는 데드라인은 미래어야 한다.
+	// 과거 -- (GroupLastGoalDeadline) -- (now) -- (request.Deadline) -- > 미래
+
+	// (2-1) 현재 구룹의 최신 목표를 가져온다.
+	listGoals, err := s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
+		GroupIDs:      []uint{request.GroupID},
+		DeadlineOrder: persistence.OrderDESC,
+		Limit:         1,
 	})
 	if err != nil {
 		return presenter.CreateGoalResponse{}, err
 	}
 
-	if len(goals) > 0 {
-		return presenter.CreateGoalResponse{}, domain.ErrFutureGoalExists
+	// (2-2) 만약 최신 목표가 있다면, 데드라인을 비교한다.
+	if !listGoals.IsEmpty() {
+		// (2-2-1) 유효성 조건 1 참고
+		// 현재 시간 기준으로, 최신 목표의 데드라인이 미래에 위치해 있다면
+		if listGoals.First().Deadline.After(now) {
+			return presenter.CreateGoalResponse{}, domain.ErrInvalidDeadline.SetDetail("현재 시각 기준으로, 최신 목표의 데드라인은 과거여야 합니다.")
+		}
 	}
 
-	return presenter.CreateGoalResponse{}, nil
+	// (2-3) 유효성 조건 2 참고
+	// 현재 시간 기준으로, 생성하고자 하는 데드라인이 과거에 위치해 있다면
+	if request.Deadline.After(now) {
+		return presenter.CreateGoalResponse{}, domain.ErrInvalidDeadline.SetDetail("현재 시각 기준으로, 생성하고자 하는 데드라인은 미래여야 합니다.")
+	}
+
+	// (3) 목표 생성
+	createdGoal, err := s.goalStore.CreateGoal(ctx, presenter.CreateGoalParams{
+		GroupID:   request.GroupID,
+		Deadline:  request.Deadline,
+		PageRange: request.PageRange,
+	})
+	if err != nil {
+		return presenter.CreateGoalResponse{}, err
+	}
+
+	return presenter.CreateGoalResponse{
+		GoalID:    createdGoal.ID,
+		Deadline:  createdGoal.Deadline,
+		PageRange: createdGoal.PageRange,
+		GroupID:   createdGoal.GroupID,
+	}, nil
 }

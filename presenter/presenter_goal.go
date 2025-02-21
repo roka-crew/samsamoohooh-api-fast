@@ -10,4 +10,8 @@ type CreateGoalRequest struct {
 }
 
 type CreateGoalResponse struct {
+	GoalID    uint      `json:"goalID"`
+	Deadline  time.Time `json:"deadline"`
+	PageRange int       `json:"pageRange"`
+	GroupID   uint      `json:"groupID"`
 }

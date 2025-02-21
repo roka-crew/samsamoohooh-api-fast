@@ -11,8 +11,8 @@ type Goal struct {
 	Deadline  time.Time
 	PageRange int
 
-	GroupID int
-	Topcis  []Topic
+	GroupID uint
+	Topics  []Topic
 }
 
 type Goals []Goal

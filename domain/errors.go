@@ -26,6 +26,9 @@ var (
 	// 그룹에 사용자가 이미 속해있는 경우
 	ErrGroupAlreadyJoined = errors.New("group already joined")
 
+	// 올바르지 않은 데드라인일 경우
+	ErrInvalidDeadline = errors.New("invalid deadline")
+
 	ErrInvalidTokenRequired      = errors.New("Invalid token: Bearer token is required")
 	ErrAuthorizationHeaderNeeded = errors.New("Authorization header is required")
 	ErrInvalidToken              = errors.New("Invalid token")
