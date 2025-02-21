@@ -29,3 +29,9 @@ go.work.sum
 
 # swagger
 docs/swagger/*
+
+# ide
+.idea
+
+# db
+*.db
