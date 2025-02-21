@@ -29,6 +29,9 @@ var (
 	// 올바르지 않은 데드라인일 경우
 	ErrInvalidDeadline = errors.New("invalid deadline")
 
+	//  목표가 존재하지 않는 경우
+	ErrGoalNotFound = errors.New("goal not found")
+
 	ErrInvalidTokenRequired      = errors.New("Invalid token: Bearer token is required")
 	ErrAuthorizationHeaderNeeded = errors.New("Authorization header is required")
 	ErrInvalidToken              = errors.New("Invalid token")

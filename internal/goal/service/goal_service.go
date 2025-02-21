@@ -124,3 +124,67 @@ func (s GoalService) ListGoals(ctx context.Context, request presenter.ListGoalsR
 		Goals: goalResponses,
 	}, nil
 }
+
+func (s GoalService) PatchGoal(ctx context.Context, request presenter.PatchGoalRequest) error {
+	// (1) 목표가 존재하는지 확인
+	listGoals, err := s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
+		IDs:   []uint{request.GoalID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+
+	if listGoals.IsEmpty() {
+		return domain.ErrGoalNotFound
+	}
+
+	// (2) 해당 목표의 구룹이, 요청한 사용자가 속한 구룹인지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		UserID:  request.RequestUserID,
+		GroupID: listGoals.First().GroupID,
+	})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return domain.ErrGroupNotMember
+	}
+
+	now := time.Now()
+	// (3) 목표 수정 - 데드라인 유효성 검사
+	// (3-1) 현재 구룹의 최신 목표를 가져온다.
+	listGoals, err = s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
+		GroupIDs:      []uint{listGoals.First().GroupID},
+		DeadlineOrder: persistence.OrderDESC,
+		Limit:         1,
+	})
+	if err != nil {
+		return err
+	}
+
+	// (2-2) 만약 최신 목표가 있다면, 데드라인을 비교한다.
+	if !listGoals.IsEmpty() {
+		// 현재 시간 기준으로, 최신 목표의 데드라인이 미래에 위치해 있다면
+		if listGoals.First().Deadline.After(now) {
+			return domain.ErrInvalidDeadline.SetDetail("현재 시각 기준으로, 최신 목표의 데드라인은 과거여야 합니다.")
+		}
+	}
+
+	// (2-3) 현재 시간 기준으로, 수정하고자 하는 데드라인이 과거에 위치해 있다면
+	if request.Deadline.Before(listGoals.First().Deadline) {
+		return domain.ErrInvalidDeadline.SetDetail("최신 목표의 데드라인 기준으로, 수정할 데드라인 값은 미래이어야 합니다.")
+	}
+
+	// (4) 목표 수정
+	err = s.goalStore.PatchGoal(ctx, presenter.PatchGoalParams{
+		ID:        request.GoalID,
+		Deadline:  request.Deadline,
+		PageRange: request.PageRange,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

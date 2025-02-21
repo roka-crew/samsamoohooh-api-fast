@@ -80,7 +80,7 @@ func (s GoalStore) PatchGoal(ctx context.Context, params presenter.PatchGoalPara
 		updates.PageRange = lo.FromPtr(params.PageRange)
 	}
 
-	if err := db.Updates(&updates).Error; err != nil {
+	if err := db.Where("id = ?", params.ID).Updates(&updates).Error; err != nil {
 		return errors.InteralError(err)
 	}
 

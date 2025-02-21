@@ -20,7 +20,7 @@ type ListGoalsParams struct {
 
 type PatchGoalParams struct {
 	// condition
-	GoalID uint
+	ID uint
 
 	// change
 	Deadline  *time.Time

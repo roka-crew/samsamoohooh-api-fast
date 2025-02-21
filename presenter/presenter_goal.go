@@ -29,3 +29,10 @@ type GoalResponse struct {
 	Deadline  time.Time `json:"deadline"`
 	PageRange int       `json:"pageRange"`
 }
+
+type PatchGoalRequest struct {
+	RequestUserID uint       `swaggerignore:"true"`
+	GoalID        uint       `param:"goal-id"`
+	Deadline      *time.Time `json:"deadline,omitempty" validate:"omitempty, datetime=2006-01-02" example:"2021-08-01"`
+	PageRange     *int       `json:"pageRange,omitempty" validate:"omitempty"`
+}
