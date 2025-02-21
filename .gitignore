@@ -26,3 +26,6 @@ go.work.sum
 
 # db
 *.db
+
+# swagger
+docs/swagger/*

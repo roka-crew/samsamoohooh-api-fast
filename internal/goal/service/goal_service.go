@@ -85,6 +85,42 @@ func (s GoalService) CreateGoal(ctx context.Context, request presenter.CreateGoa
 		GoalID:    createdGoal.ID,
 		Deadline:  createdGoal.Deadline,
 		PageRange: createdGoal.PageRange,
-		GroupID:   createdGoal.GroupID,
+	}, nil
+}
+
+func (s GoalService) ListGoals(ctx context.Context, request presenter.ListGoalsRequest) (presenter.ListGoalsResponse, error) {
+	// (1) 요청한 사용자가 해당 구릅에 속해 있는지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		UserID:  request.RequestUserID,
+		GroupID: request.GroupID,
+	})
+	if err != nil {
+		return presenter.ListGoalsResponse{}, err
+	}
+
+	if !exists {
+		return presenter.ListGoalsResponse{}, domain.ErrGroupNotMember
+	}
+
+	// (2) 목표 리스트 조회
+	goals, err := s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
+		GroupIDs: []uint{request.GroupID},
+	})
+	if err != nil {
+		return presenter.ListGoalsResponse{}, err
+	}
+
+	// (2) 목표 리스트를 반환한다.
+	goalResponses := make([]presenter.GoalResponse, 0, len(goals))
+	for _, goal := range goals {
+		goalResponses = append(goalResponses, presenter.GoalResponse{
+			ID:        goal.ID,
+			Deadline:  goal.Deadline,
+			PageRange: goal.PageRange,
+		})
+	}
+
+	return presenter.ListGoalsResponse{
+		Goals: goalResponses,
 	}, nil
 }
