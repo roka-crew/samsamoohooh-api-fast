@@ -28,5 +28,5 @@ type PatchGoalParams struct {
 }
 
 type DeleteGoalParams struct {
-	GoalID uint
+	ID uint
 }

@@ -18,7 +18,7 @@ type AuthHandler struct {
 	router         *router.Router
 	authService    *service.AuthService
 	authMiddleware *middleware.AuthMiddleware
-	ctxutil        *ctxutil.CtxUtil
+	ctxUtil        *ctxutil.CtxUtil
 }
 
 func NewAuthHandler(
@@ -31,7 +31,7 @@ func NewAuthHandler(
 		router:         router,
 		authService:    authService,
 		authMiddleware: authMiddleware,
-		ctxutil:        ctxUtil,
+		ctxUtil:        ctxUtil,
 	}
 
 	auth := router.Group("/auth")
@@ -80,7 +80,7 @@ func (h AuthHandler) IssueToken(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} presenter.ValidateResponse "토큰 유효성 검사 성공"
 // @Failure 404 {object} errors.Error "사용자를 찾을 수 없음 : user not found"
-// @Router /auth/validate [post]
+// @Router /Rauth/validate [post]
 // @Security BearerAuth
 func (h AuthHandler) Validate(c echo.Context) error {
 	var (
@@ -89,7 +89,7 @@ func (h AuthHandler) Validate(c echo.Context) error {
 		err      error
 	)
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}

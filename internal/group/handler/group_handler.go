@@ -15,18 +15,18 @@ import (
 )
 
 type GroupHandler struct {
-	ctxutil      *ctxutil.CtxUtil
+	ctxUtil      *ctxutil.CtxUtil
 	groupService *service.GroupService
 }
 
 func NewGroupHandler(
-	ctxutil *ctxutil.CtxUtil,
+	ctxUtil *ctxutil.CtxUtil,
 	router *router.Router,
 	groupService *service.GroupService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *GroupHandler {
 	groupHandler := &GroupHandler{
-		ctxutil:      ctxutil,
+		ctxUtil:      ctxUtil,
 		groupService: groupService,
 	}
 
@@ -63,7 +63,7 @@ func (h GroupHandler) CreateGroup(c echo.Context) error {
 		return err
 	}
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (h GroupHandler) ListGroups(c echo.Context) error {
 		err      error
 	)
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 		return err
 	}
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -151,49 +151,6 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 		return err
 	}
 }
-
-// DeleteGroup
-// @Summary Delete a group - 그룹 단건 삭제 ✅
-// @Tags groups
-// @Produce json
-// @Param Authorization header string true "Bearer token"
-// @Param group-id path string true "Group ID"
-// @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
-// @Failure 403 {object} errors.Error "그룹에 사용자가 있음: group has users"
-// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
-// @Router /groups/{group-id} [delete]
-// @Security Bearer
-// func (h GroupHandler) DeleteGroup(c echo.Context) error {
-// 	var (
-// 		request presenter.DeleteGroupRequest
-// 		err     error
-// 	)
-
-// 	if err := c.Bind(&request); err != nil {
-// 		return err
-// 	}
-
-// 	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	err = h.groupService.DeleteGroup(c.Request().Context(), request)
-
-// 	switch {
-// 	case err == nil:
-// 		return c.NoContent(http.StatusNoContent)
-// 	case errors.Is(err, domain.ErrGroupNotOwned):
-// 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
-// 	case errors.Is(err, domain.ErrGroupHasUsers):
-// 		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 사용자가 있음")
-// 	case errors.Is(err, domain.ErrGroupNotFound):
-// 		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
-// 	default:
-// 		return err
-// 	}
-// }
 
 // LeaveGroup
 // @Summary Leave a group - 그룹 단건 탈퇴 ✅
@@ -216,7 +173,7 @@ func (h GroupHandler) LeaveGroup(c echo.Context) error {
 		return err
 	}
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -256,7 +213,7 @@ func (h GroupHandler) JoinGroup(c echo.Context) error {
 		return err
 	}
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}

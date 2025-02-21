@@ -188,3 +188,40 @@ func (s GoalService) PatchGoal(ctx context.Context, request presenter.PatchGoalR
 
 	return nil
 }
+
+func (s GoalService) DeleteGoal(ctx context.Context, request presenter.DeleteGoalRequest) error {
+	// (1) 목표가 존재하는지 확인
+	listGoals, err := s.goalStore.ListGoals(ctx, presenter.ListGoalsParams{
+		IDs:   []uint{request.GoalID},
+		Limit: 1,
+	})
+	if err != nil {
+		return err
+	}
+
+	if listGoals.IsEmpty() {
+		return domain.ErrGoalNotFound
+	}
+
+	// (2) 해당 목표의 구룹이, 요청한 사용자가 속한 구룹인지 확인
+	exists, err := s.groupStore.ExistsGroupUser(ctx, presenter.ExistsGroupUserParams{
+		UserID:  request.RequestUserID,
+		GroupID: listGoals.First().GroupID,
+	})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return domain.ErrGroupNotMember
+	}
+
+	// (3) 목표 삭제
+	err = s.goalStore.DeleteGoal(ctx, presenter.DeleteGoalParams{
+		ID: request.GoalID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -9,7 +9,6 @@ import (
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
 	"github.com/samber/lo"
-	"gorm.io/gorm"
 )
 
 type GoalStore struct {
@@ -90,7 +89,7 @@ func (s GoalStore) PatchGoal(ctx context.Context, params presenter.PatchGoalPara
 func (s GoalStore) DeleteGoal(ctx context.Context, params presenter.DeleteGoalParams) error {
 	db := s.db.WithContext(ctx)
 
-	if err := db.Delete(&domain.Goal{Model: gorm.Model{ID: params.GoalID}}, params.GoalID).Error; err != nil {
+	if err := db.Delete(&domain.Goal{}, params.ID).Error; err != nil {
 		return errors.InteralError(err)
 	}
 

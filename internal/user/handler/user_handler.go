@@ -16,19 +16,19 @@ import (
 type UserHandler struct {
 	userService *service.UserService
 	router      *router.Router
-	ctxutil     *ctxutil.CtxUtil
+	ctxUtil     *ctxutil.CtxUtil
 }
 
 func NewUserHandler(
 	userService *service.UserService,
 	router *router.Router,
 	authMiddleware *middleware.AuthMiddleware,
-	ctxutil *ctxutil.CtxUtil,
+	ctxUtil *ctxutil.CtxUtil,
 ) *UserHandler {
 	userHandler := &UserHandler{
 		userService: userService,
 		router:      router,
-		ctxutil:     ctxutil,
+		ctxUtil:     ctxUtil,
 	}
 
 	users := router.Group("/users")
@@ -94,7 +94,7 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 		err      error
 	)
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 		return err
 	}
 
-	request.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
@@ -160,16 +160,16 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 // @Security BearerAuth
 func (h UserHandler) DeleteUserByMe(c echo.Context) error {
 	var (
-		reqeust presenter.DeleteUserByMeRequest
+		request presenter.DeleteUserByMeRequest
 		err     error
 	)
 
-	reqeust.RequestUserID, err = h.ctxutil.GetRequestUserID(c)
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
 	if err != nil {
 		return err
 	}
 
-	err = h.userService.DeleteUserByMe(c.Request().Context(), reqeust)
+	err = h.userService.DeleteUserByMe(c.Request().Context(), request)
 
 	switch {
 	case err == nil:

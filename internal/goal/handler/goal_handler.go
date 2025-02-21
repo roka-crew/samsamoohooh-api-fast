@@ -14,16 +14,16 @@ import (
 
 type GoalHandler struct {
 	goalService *service.GoalService
-	ctxutil     *ctxutil.CtxUtil
+	ctxUtil     *ctxutil.CtxUtil
 }
 
 func NewGoalHandler(
-	ctxutil *ctxutil.CtxUtil,
+	ctxUtil *ctxutil.CtxUtil,
 	goalService *service.GoalService,
 	router *router.Router,
 ) *GoalHandler {
 	goalHandler := &GoalHandler{
-		ctxutil:     ctxutil,
+		ctxUtil:     ctxUtil,
 		goalService: goalService,
 	}
 
@@ -32,6 +32,7 @@ func NewGoalHandler(
 		groups.POST("", goalHandler.CreateGoal)
 		groups.GET("", goalHandler.ListGoals)
 		groups.PATCH("/:goal-id", goalHandler.PatchGoal)
+		groups.DELETE("/:goal-id", goalHandler.DeleteGoal)
 	}
 
 	return goalHandler
@@ -56,6 +57,11 @@ func (h GoalHandler) CreateGoal(c echo.Context) error {
 	)
 
 	if err = c.Bind(&request); err != nil {
+		return err
+	}
+
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
+	if err != nil {
 		return err
 	}
 
@@ -94,6 +100,11 @@ func (h GoalHandler) ListGoals(c echo.Context) error {
 		return err
 	}
 
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
+	if err != nil {
+		return err
+	}
+
 	response, err = h.goalService.ListGoals(c.Request().Context(), request)
 
 	switch {
@@ -127,6 +138,11 @@ func (h GoalHandler) PatchGoal(c echo.Context) error {
 		return err
 	}
 
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(c)
+	if err != nil {
+		return err
+	}
+
 	err = h.goalService.PatchGoal(c.Request().Context(), request)
 
 	switch {
@@ -138,6 +154,46 @@ func (h GoalHandler) PatchGoal(c echo.Context) error {
 		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("목표를 찾을 수 없습니다.")
 	case errors.Is(err, domain.ErrInvalidDeadline):
 		return errors.Restore(err).SetStatus(http.StatusBadRequest)
+	default:
+		return err
+	}
+}
+
+// DeleteGoal
+// @Summary Delete a goal - 목표 단건 삭제 ✅
+// @Tags goals
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param goal-id path int true "Goal ID"
+// @Success 204
+// @Failure 403 {object} errors.Error "그룹에 속해있지 않음: group not member"
+// @Failure 404 {object} errors.Error "목표를 찾을 수 없음: goal not found"
+// @Router /goals/{goal-id} [delete]
+// @Security Bearer
+func (h GoalHandler) DeleteGoal(e echo.Context) error {
+	var (
+		request presenter.DeleteGoalRequest
+		err     error
+	)
+
+	if err = e.Bind(&request); err != nil {
+		return err
+	}
+
+	request.RequestUserID, err = h.ctxUtil.GetRequestUserID(e)
+	if err != nil {
+		return err
+	}
+
+	err = h.goalService.DeleteGoal(e.Request().Context(), request)
+
+	switch {
+	case err == nil:
+		return e.NoContent(http.StatusNoContent)
+	case errors.Is(err, domain.ErrGroupNotMember):
+		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 속해있지 않습니다.")
+	case errors.Is(err, domain.ErrGoalNotFound):
+		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("목표를 찾을 수 없습니다.")
 	default:
 		return err
 	}
