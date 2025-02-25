@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/config"
-	"github.com/roka-crew/pkg/errors"
 )
 
 type ErrorHandler struct {
@@ -20,19 +20,20 @@ func NewErrorHandler(cfg *config.Config) *ErrorHandler {
 }
 
 func (h ErrorHandler) ErrorHandler(err error, c echo.Context) {
-	switch err.(type) {
-	case errors.Error:
-		e := errors.Restore(err)
-		e.Status = e.StatusCode()
-		e.Title = http.StatusText(e.StatusCode())
-		e.Instance = c.Path()
 
+	switch err.(type) {
+	case *apperr.Error:
+		appError := apperr.Restore(err)
+		appError.Instance = c.Path()
+
+		_ = c.JSON(appError.Status, appError)
+	case *apperr.InternalError:
 		if h.cfg.Env == "dev" {
-			log.Printf("[ERROR] occured error: %+v\n", e)
+			fmt.Println(err.(*apperr.InternalError).Pretty())
 		}
 
-		_ = c.JSON(e.StatusCode(), e)
-
+		_ = c.NoContent(http.StatusInternalServerError)
+		return
 	default:
 		defaultHTTPErrorHandler(err, c)
 	}

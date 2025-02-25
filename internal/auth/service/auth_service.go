@@ -26,45 +26,45 @@ func NewAuthService(
 	}
 }
 
-func (s AuthService) IssueToken(ctx context.Context, request presenter.IssueTokenRequest) (*presenter.IssueTokenResponse, error) {
+func (s AuthService) IssueToken(ctx context.Context, request presenter.IssueTokenRequest) (presenter.IssueTokenResponse, error) {
 	// 1. 닉네임으로 사용자를 조회한다.
 	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
 		Nicknames: []string{request.Nickname},
 		Limit:     1,
 	})
 	if err != nil {
-		return nil, err
+		return presenter.IssueTokenResponse{}, err
 	}
 	if listUsers.IsEmpty() {
-		return nil, domain.ErrUserNotFound
+		return presenter.IssueTokenResponse{}, domain.ErrUserNotFound
 	}
 
 	// 2. 토큰을 발급한다.
 	tokenString, err := s.tokenService.GenerateToken(listUsers.First().ID)
 	if err != nil {
-		return nil, err
+		return presenter.IssueTokenResponse{}, err
 	}
 
-	return &presenter.IssueTokenResponse{
+	return presenter.IssueTokenResponse{
 		Token: tokenString,
 	}, nil
 }
 
-func (s AuthService) Validate(ctx context.Context, request presenter.ValidateRequest) (*presenter.ValidateResponse, error) {
+func (s AuthService) Validate(ctx context.Context, request presenter.ValidateRequest) (presenter.ValidateResponse, error) {
 	// 1. 사용자를 조회한다.
 	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
 		Limit: 1,
 		IDs:   []uint{request.RequestUserID},
 	})
 	if err != nil {
-		return nil, err
+		return presenter.ValidateResponse{}, err
 	}
 	if listUsers.IsEmpty() {
-		return nil, domain.ErrUserNotFound
+		return presenter.ValidateResponse{}, domain.ErrUserNotFound
 	}
 
 	// 2. 사용자의 닉네임을 반환한다.
-	return &presenter.ValidateResponse{
+	return presenter.ValidateResponse{
 		Nickname:   listUsers.First().Nickname,
 		Resolution: listUsers.First().Resolution,
 	}, nil

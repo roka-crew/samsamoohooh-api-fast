@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/domain"
 	"github.com/roka-crew/internal/user/service"
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/ctxutil"
-	"github.com/roka-crew/pkg/errors"
 	"github.com/roka-crew/presenter"
 	"github.com/roka-crew/router"
 	"github.com/roka-crew/router/middleware"
@@ -15,19 +15,17 @@ import (
 
 type UserHandler struct {
 	userService *service.UserService
-	router      *router.Router
 	ctxUtil     *ctxutil.CtxUtil
 }
 
 func NewUserHandler(
 	userService *service.UserService,
+	ctxUtil *ctxutil.CtxUtil,
 	router *router.Router,
 	authMiddleware *middleware.AuthMiddleware,
-	ctxUtil *ctxutil.CtxUtil,
 ) *UserHandler {
 	userHandler := &UserHandler{
 		userService: userService,
-		router:      router,
 		ctxUtil:     ctxUtil,
 	}
 
@@ -48,7 +46,7 @@ func NewUserHandler(
 // @Param CreateUserRequest body presenter.CreateUserRequest true "사용자 생성 요청"
 // @Produce json
 // @Success 201 {object} presenter.CreateUserResponse"회원가입에 성공한 사용자 정보"
-// @Failure 409 {object} errors.Error "사용자가 이미 존재함 : user already exists"
+// @Failure 409 {object} apperr.Error "사용자가 이미 존재함 : user already exists"
 // @Router /users [post]
 // @Security BearerAuth
 func (h UserHandler) CreateUser(c echo.Context) error {
@@ -71,8 +69,8 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusCreated, response)
-	case errors.Is(err, domain.ErrUserAlreadyExists):
-		return errors.Restore(err).SetStatus(http.StatusConflict)
+	case apperr.Is(err, domain.ErrUserAlreadyExists):
+		return apperr.Restore(err).SetStatus(http.StatusConflict).SetDetail("사용자가 이미 존재함")
 	default:
 		return err
 	}
@@ -84,7 +82,7 @@ func (h UserHandler) CreateUser(c echo.Context) error {
 // @Produce json
 // @Param Authorization header string true "Bearer token"
 // @Success 200 {object} presenter.FindUserByMeResponse "내 정보 조회에 성공한 사용자 정보"
-// @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
+// @Failure 404 {object} apperr.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [get]
 // @Security BearerAuth
 func (h UserHandler) FindUserByMe(c echo.Context) error {
@@ -104,8 +102,8 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
-	case errors.Is(err, domain.ErrUserNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrUserNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -119,7 +117,7 @@ func (h UserHandler) FindUserByMe(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param PatchUserByMeRequest body presenter.PatchUserByMeRequest true "사용자 수정 요청"
 // @Success 204
-// @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
+// @Failure 404 {object} apperr.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [patch]
 // @Security BearerAuth
 func (h UserHandler) PatchUserByMe(c echo.Context) error {
@@ -142,8 +140,8 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrUserNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrUserNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -155,7 +153,7 @@ func (h UserHandler) PatchUserByMe(c echo.Context) error {
 // @Produce json
 // @Param Authorization header string true "Bearer token"
 // @Success 204
-// @Failure 404 {object} errors.Error "유저를 찾지 못함: user not found"
+// @Failure 404 {object} apperr.Error "유저를 찾지 못함: user not found"
 // @Router /users/me [delete]
 // @Security BearerAuth
 func (h UserHandler) DeleteUserByMe(c echo.Context) error {
@@ -174,8 +172,8 @@ func (h UserHandler) DeleteUserByMe(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrUserNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrUserNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}

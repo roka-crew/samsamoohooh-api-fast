@@ -1,10 +1,10 @@
 package validator
 
 import (
+	"github.com/roka-crew/pkg/apperr"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
 )
 
 type CustomValidator struct {
@@ -19,7 +19,9 @@ func New() *CustomValidator {
 
 func (v CustomValidator) Validate(i any) error {
 	if err := v.validator.Struct(i); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return apperr.New("invalid request").
+			SetStatus(http.StatusBadRequest).
+			SetDetail(err.Error())
 	}
 
 	return nil

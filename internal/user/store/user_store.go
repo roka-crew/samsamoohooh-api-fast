@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/roka-crew/pkg/errors"
+	"github.com/roka-crew/pkg/apperr"
 	"gorm.io/gorm"
 
 	"github.com/roka-crew/domain"
@@ -27,7 +27,7 @@ func (s UserStore) CreateUser(ctx context.Context, params presenter.CreateUserPa
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return domain.User{}, errors.NewInternalError(err)
+		return domain.User{}, apperr.NewInternalError(err)
 	}
 
 	return params, nil
@@ -58,7 +58,7 @@ func (s UserStore) ListUsers(ctx context.Context, params presenter.ListUsersPara
 
 	var users []domain.User
 	if err := db.Find(&users).Error; err != nil {
-		return domain.Users{}, errors.NewInternalError(err)
+		return domain.Users{}, apperr.NewInternalError(err)
 	}
 
 	return users, nil
@@ -77,7 +77,7 @@ func (s UserStore) PatchUser(ctx context.Context, params presenter.PatchUserPara
 	}
 
 	if err := db.Where("id = ?", params.UserID).Updates(user).Error; err != nil {
-		return errors.NewInternalError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -99,7 +99,7 @@ func (s UserStore) DeleteUser(ctx context.Context, params presenter.DeleteUserPa
 	}
 
 	if err := db.Delete(&domain.User{}).Error; err != nil {
-		return errors.NewInternalError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func (s UserStore) ListUserGroups(ctx context.Context, params presenter.ListUser
 	var groups domain.Groups
 	if err := db.Model(&domain.User{Model: gorm.Model{ID: params.UserID}}).Association("Groups").Find(&groups); err != nil {
 		fmt.Println("err: ", err)
-		return domain.Groups{}, errors.InteralError(err)
+		return domain.Groups{}, apperr.NewInternalError(err)
 	}
 
 	return groups, nil

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/roka-crew/domain"
-	"github.com/roka-crew/pkg/errors"
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
 	"github.com/samber/lo"
@@ -25,7 +25,7 @@ func (s GoalStore) CreateGoal(ctx context.Context, params presenter.CreateGoalPa
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return domain.Goal{}, errors.InteralError(err)
+		return domain.Goal{}, apperr.NewInternalError(err)
 	}
 
 	return params, nil
@@ -60,7 +60,7 @@ func (s GoalStore) ListGoals(ctx context.Context, params presenter.ListGoalsPara
 
 	var goals domain.Goals
 	if err := db.Find(&goals).Error; err != nil {
-		return domain.Goals{}, errors.InteralError(err)
+		return domain.Goals{}, apperr.NewInternalError(err)
 	}
 
 	return goals, nil
@@ -80,7 +80,7 @@ func (s GoalStore) PatchGoal(ctx context.Context, params presenter.PatchGoalPara
 	}
 
 	if err := db.Where("id = ?", params.ID).Updates(&updates).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -90,7 +90,7 @@ func (s GoalStore) DeleteGoal(ctx context.Context, params presenter.DeleteGoalPa
 	db := s.db.WithContext(ctx)
 
 	if err := db.Delete(&domain.Goal{}, params.ID).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil

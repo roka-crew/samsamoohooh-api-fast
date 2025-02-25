@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/roka-crew/pkg/errors"
+	"github.com/roka-crew/pkg/apperr"
 
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/domain"
@@ -15,14 +15,14 @@ import (
 )
 
 type GroupHandler struct {
-	ctxUtil      *ctxutil.CtxUtil
 	groupService *service.GroupService
+	ctxUtil      *ctxutil.CtxUtil
 }
 
 func NewGroupHandler(
+	groupService *service.GroupService,
 	ctxUtil *ctxutil.CtxUtil,
 	router *router.Router,
-	groupService *service.GroupService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *GroupHandler {
 	groupHandler := &GroupHandler{
@@ -79,12 +79,12 @@ func (h GroupHandler) CreateGroup(c echo.Context) error {
 }
 
 // ListGroups
-// @Summary List groups - 그룹 다건 조회 ✅
+// @Summary list groups - 그룹 다건 조회 ✅
 // @Tags groups
 // @Produce json
 // @Param Authorization header string true "Bearer token"
 // @Success 200 {object} presenter.ListGroupsResponse
-// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Failure 404 {object} apperr.Error "그룹을 찾지 못함: group not found"
 // @Router /groups [get]
 // @Security Bearer
 func (h GroupHandler) ListGroups(c echo.Context) error {
@@ -104,8 +104,8 @@ func (h GroupHandler) ListGroups(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
-	case errors.Is(err, domain.ErrGroupNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrGroupNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -119,8 +119,8 @@ func (h GroupHandler) ListGroups(c echo.Context) error {
 // @Param group-id path string true "Group ID"
 // @Param PatchGroupRequest body presenter.PatchGroupRequest true "PatchGroupRequest"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
-// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Failure 403 {object} apperr.Error "그룹 소유자가 아님: group not member"
+// @Failure 404 {object} apperr.Error "그룹을 찾지 못함: group not found"
 // @Router /groups/{group-id} [patch]
 // @Security Bearer
 func (h GroupHandler) PatchGroup(c echo.Context) error {
@@ -143,10 +143,10 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
-	case errors.Is(err, domain.ErrGroupNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
+	case apperr.Is(err, domain.ErrGroupNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -159,8 +159,8 @@ func (h GroupHandler) PatchGroup(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param group-id path string true "Group ID"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹 소유자가 아님: group not member"
-// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
+// @Failure 403 {object} apperr.Error "그룹 소유자가 아님: group not member"
+// @Failure 404 {object} apperr.Error "그룹을 찾지 못함: group not found"
 // @Router /groups/{group-id}/leave [post]
 // @Security Bearer
 func (h GroupHandler) LeaveGroup(c echo.Context) error {
@@ -183,10 +183,10 @@ func (h GroupHandler) LeaveGroup(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹 소유자가 아님")
-	case errors.Is(err, domain.ErrGroupNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
+	case apperr.Is(err, domain.ErrGroupNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -199,8 +199,8 @@ func (h GroupHandler) LeaveGroup(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param group-id path string true "Group ID"
 // @Success 204
-// @Failure 404 {object} errors.Error "그룹을 찾지 못함: group not found"
-// @Failure 403 {object} errors.Error "그룹에 이미 참여함: group already joined"
+// @Failure 404 {object} apperr.Error "그룹을 찾지 못함: group not found"
+// @Failure 403 {object} apperr.Error "그룹에 이미 참여함: group already joined"
 // @Router /groups/{group-id}/join [post]
 // @Security Bearer
 func (h GroupHandler) JoinGroup(c echo.Context) error {
@@ -223,10 +223,10 @@ func (h GroupHandler) JoinGroup(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("그룹을 찾지 못함")
-	case errors.Is(err, domain.ErrGroupAlreadyJoined):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 이미 참여함")
+	case apperr.Is(err, domain.ErrGroupNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrGroupAlreadyJoined):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
 	default:
 		return err
 	}

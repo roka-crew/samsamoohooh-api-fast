@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/ctxutil"
-	"github.com/roka-crew/pkg/errors"
 	"github.com/roka-crew/router/middleware"
 
 	"github.com/labstack/echo/v4"
@@ -15,23 +15,19 @@ import (
 )
 
 type AuthHandler struct {
-	router         *router.Router
-	authService    *service.AuthService
-	authMiddleware *middleware.AuthMiddleware
-	ctxUtil        *ctxutil.CtxUtil
+	authService *service.AuthService
+	ctxUtil     *ctxutil.CtxUtil
 }
 
 func NewAuthHandler(
-	router *router.Router,
 	authService *service.AuthService,
-	authMiddleware *middleware.AuthMiddleware,
 	ctxUtil *ctxutil.CtxUtil,
+	router *router.Router,
+	authMiddleware *middleware.AuthMiddleware,
 ) *AuthHandler {
 	authHandler := &AuthHandler{
-		router:         router,
-		authService:    authService,
-		authMiddleware: authMiddleware,
-		ctxUtil:        ctxUtil,
+		authService: authService,
+		ctxUtil:     ctxUtil,
 	}
 
 	auth := router.Group("/auth")
@@ -49,12 +45,12 @@ func NewAuthHandler(
 // @Param IssueTokenRequest body presenter.IssueTokenRequest true "토큰 발급 요청"
 // @Produce json
 // @Success 200 {object} presenter.IssueTokenResponse "토큰 발급 성공"
-// @Failure 404 {object} errors.Error "사용자를 찾을 수 없음 : user not found"
+// @Failure 404 {object} apperr.Error "사용자를 찾을 수 없음 : user not found"
 // @Router /auth/issue-token [post]
 func (h AuthHandler) IssueToken(c echo.Context) error {
 	var (
 		request  presenter.IssueTokenRequest
-		response *presenter.IssueTokenResponse
+		response presenter.IssueTokenResponse
 		err      error
 	)
 
@@ -67,8 +63,8 @@ func (h AuthHandler) IssueToken(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
-	case errors.Is(err, domain.ErrUserNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrUserNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}
@@ -79,13 +75,13 @@ func (h AuthHandler) IssueToken(c echo.Context) error {
 // @Tags auth
 // @Produce json
 // @Success 200 {object} presenter.ValidateResponse "토큰 유효성 검사 성공"
-// @Failure 404 {object} errors.Error "사용자를 찾을 수 없음 : user not found"
+// @Failure 404 {object} apperr.Error "사용자를 찾을 수 없음 : user not found"
 // @Router /Rauth/validate [post]
 // @Security BearerAuth
 func (h AuthHandler) Validate(c echo.Context) error {
 	var (
 		request  presenter.ValidateRequest
-		response *presenter.ValidateResponse
+		response presenter.ValidateResponse
 		err      error
 	)
 
@@ -99,8 +95,8 @@ func (h AuthHandler) Validate(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
-	case errors.Is(err, domain.ErrUserNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrUserNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}

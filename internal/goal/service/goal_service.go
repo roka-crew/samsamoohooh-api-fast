@@ -67,7 +67,7 @@ func (s GoalService) CreateGoal(ctx context.Context, request presenter.CreateGoa
 
 	// (2-3) 유효성 조건 2 참고
 	// 현재 시간 기준으로, 생성하고자 하는 데드라인이 과거에 위치해 있다면
-	if request.Deadline.After(now) {
+	if request.Deadline.Before(now) {
 		return presenter.CreateGoalResponse{}, domain.ErrInvalidDeadline.SetDetail("현재 시각 기준으로, 생성하고자 하는 데드라인은 미래여야 합니다.")
 	}
 

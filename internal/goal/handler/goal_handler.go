@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"github.com/roka-crew/domain"
-	"github.com/roka-crew/pkg/errors"
-	"github.com/roka-crew/router"
 	"net/http"
+
+	"github.com/roka-crew/domain"
+	"github.com/roka-crew/pkg/apperr"
+	"github.com/roka-crew/router"
+	"github.com/roka-crew/router/middleware"
 
 	"github.com/labstack/echo/v4"
 	"github.com/roka-crew/internal/goal/service"
@@ -18,16 +20,17 @@ type GoalHandler struct {
 }
 
 func NewGoalHandler(
-	ctxUtil *ctxutil.CtxUtil,
 	goalService *service.GoalService,
+	ctxUtil *ctxutil.CtxUtil,
 	router *router.Router,
+	authMiddleware *middleware.AuthMiddleware,
 ) *GoalHandler {
 	goalHandler := &GoalHandler{
 		ctxUtil:     ctxUtil,
 		goalService: goalService,
 	}
 
-	groups := router.Group("/goals")
+	groups := router.Group("/goals", authMiddleware.AuthenticateRequest)
 	{
 		groups.POST("", goalHandler.CreateGoal)
 		groups.GET("", goalHandler.ListGoals)
@@ -45,8 +48,8 @@ func NewGoalHandler(
 // @Param Authorization header string true "Bearer token"
 // @Param CreateGoalRequest body presenter.CreateGoalRequest true "CreateGoalRequest"
 // @Success 201 {object} presenter.CreateGoalResponse
-// @Failure 400 {object} errors.Error "deadline이 유효하지 않음 : invalid deadline"
-// @Failure 403 {object} errors.Error "그룹에 속해있지 않음: group not member"k
+// @Failure 400 {object} apperr.Error "deadline이 유효하지 않음 : invalid deadline"
+// @Failure 403 {object} apperr.Error "그룹에 속해있지 않음: group not member"k
 // @Router /goals [post]
 // @Security Bearer
 func (h GoalHandler) CreateGoal(c echo.Context) error {
@@ -70,10 +73,10 @@ func (h GoalHandler) CreateGoal(c echo.Context) error {
 	switch {
 	case err != nil:
 		return c.JSON(http.StatusCreated, response)
-	case errors.Is(err, domain.ErrInvalidDeadline):
-		return errors.Restore(err).SetStatus(http.StatusBadRequest)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 속해있지 않습니다.")
+	case apperr.Is(err, domain.ErrInvalidDeadline):
+		return apperr.Restore(err).SetStatus(http.StatusBadRequest)
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
 	default:
 		return c.JSON(http.StatusCreated, response)
 	}
@@ -86,7 +89,7 @@ func (h GoalHandler) CreateGoal(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param ListGoalsRequest body presenter.ListGoalsRequest true "ListGoalsRequest"
 // @Success 200 {object} presenter.ListGoalsResponse
-// @Failure 403 {object} errors.Error "그룹에 속해있지 않음: group not member"
+// @Failure 403 {object} apperr.Error "그룹에 속해있지 않음: group not member"
 // @Router /goals [get]
 // @Security Bearer
 func (h GoalHandler) ListGoals(c echo.Context) error {
@@ -110,8 +113,8 @@ func (h GoalHandler) ListGoals(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.JSON(http.StatusOK, response)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden)
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
 	default:
 		return err
 	}
@@ -125,7 +128,7 @@ func (h GoalHandler) ListGoals(c echo.Context) error {
 // @Param goal-id path int true "Goal ID"
 // @Param PatchGoalRequest body presenter.PatchGoalRequest true "PatchGoalRequest"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹에 속해있지 않음: group not member"
+// @Failure 403 {object} apperr.Error "그룹에 속해있지 않음: group not member"
 // @Router /goals/{goal-id} [patch]
 // @Security Bearer
 func (h GoalHandler) PatchGoal(c echo.Context) error {
@@ -148,12 +151,12 @@ func (h GoalHandler) PatchGoal(c echo.Context) error {
 	switch {
 	case err == nil:
 		return c.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 속해있지 않습니다.")
-	case errors.Is(err, domain.ErrGoalNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("목표를 찾을 수 없습니다.")
-	case errors.Is(err, domain.ErrInvalidDeadline):
-		return errors.Restore(err).SetStatus(http.StatusBadRequest)
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
+	case apperr.Is(err, domain.ErrGoalNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
+	case apperr.Is(err, domain.ErrInvalidDeadline):
+		return apperr.Restore(err).SetStatus(http.StatusBadRequest)
 	default:
 		return err
 	}
@@ -166,8 +169,8 @@ func (h GoalHandler) PatchGoal(c echo.Context) error {
 // @Param Authorization header string true "Bearer token"
 // @Param goal-id path int true "Goal ID"
 // @Success 204
-// @Failure 403 {object} errors.Error "그룹에 속해있지 않음: group not member"
-// @Failure 404 {object} errors.Error "목표를 찾을 수 없음: goal not found"
+// @Failure 403 {object} apperr.Error "그룹에 속해있지 않음: group not member"
+// @Failure 404 {object} apperr.Error "목표를 찾을 수 없음: goal not found"
 // @Router /goals/{goal-id} [delete]
 // @Security Bearer
 func (h GoalHandler) DeleteGoal(e echo.Context) error {
@@ -190,10 +193,10 @@ func (h GoalHandler) DeleteGoal(e echo.Context) error {
 	switch {
 	case err == nil:
 		return e.NoContent(http.StatusNoContent)
-	case errors.Is(err, domain.ErrGroupNotMember):
-		return errors.Restore(err).SetStatus(http.StatusForbidden).SetDetail("그룹에 속해있지 않습니다.")
-	case errors.Is(err, domain.ErrGoalNotFound):
-		return errors.Restore(err).SetStatus(http.StatusNotFound).SetDetail("목표를 찾을 수 없습니다.")
+	case apperr.Is(err, domain.ErrGroupNotMember):
+		return apperr.Restore(err).SetStatus(http.StatusForbidden)
+	case apperr.Is(err, domain.ErrGoalNotFound):
+		return apperr.Restore(err).SetStatus(http.StatusNotFound)
 	default:
 		return err
 	}

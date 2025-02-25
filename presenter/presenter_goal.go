@@ -5,7 +5,7 @@ import "time"
 type CreateGoalRequest struct {
 	RequestUserID uint      `swaggerignore:"true"`
 	GroupID       uint      `json:"groupID"`
-	Deadline      time.Time `json:"deadline" validate:"required, datetime=2006-01-02" example:"2021-08-01"`
+	Deadline      time.Time `json:"deadline" validate:"required" example:"2021-08-01T00:00:00Z"`
 	PageRange     int       `json:"pageRange"`
 }
 
@@ -33,7 +33,7 @@ type GoalResponse struct {
 type PatchGoalRequest struct {
 	RequestUserID uint       `swaggerignore:"true"`
 	GoalID        uint       `param:"goal-id"`
-	Deadline      *time.Time `json:"deadline,omitempty" validate:"omitempty, datetime=2006-01-02" example:"2021-08-01"`
+	Deadline      *time.Time `json:"deadline,omitempty" validate:"omitempty" example:"2021-08-01T00:00:00Z"`
 	PageRange     *int       `json:"pageRange,omitempty" validate:"omitempty"`
 }
 

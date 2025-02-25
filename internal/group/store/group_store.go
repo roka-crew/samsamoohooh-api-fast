@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/roka-crew/domain"
-	"github.com/roka-crew/pkg/errors"
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
 	"github.com/samber/lo"
@@ -25,7 +25,7 @@ func (s GroupStore) CreateGroup(ctx context.Context, params presenter.CreateGrou
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return domain.Group{}, errors.NewInternalError(err)
+		return domain.Group{}, apperr.NewInternalError(err)
 	}
 
 	return params, nil
@@ -52,7 +52,7 @@ func (s GroupStore) ListGroups(ctx context.Context, params presenter.ListGroupsP
 
 	var groups domain.Groups
 	if err := db.Find(&groups).Error; err != nil {
-		return nil, errors.InteralError(err)
+		return nil, apperr.NewInternalError(err)
 	}
 
 	return groups, nil
@@ -88,7 +88,7 @@ func (s GroupStore) PatchGroup(ctx context.Context, params presenter.PatchGroupP
 	}
 
 	if err := db.Model(&domain.Group{}).Where("id = ?", params.GroupID).Updates(&updates).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func (s GroupStore) DeleteGroup(ctx context.Context, params presenter.DeleteGrou
 	db := s.db.WithContext(ctx)
 
 	if err := db.Delete(&domain.Group{Model: gorm.Model{ID: params.GroupID}}).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -110,11 +110,11 @@ func (s GroupStore) AddGroupUsers(ctx context.Context, params presenter.AddGroup
 	// 1. users 조회
 	var users domain.Users
 	if err := db.Where("id IN ?", params.UserIDs).Find(&users).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	if err := db.Model(&domain.Group{Model: gorm.Model{ID: params.GroupID}}).Association("Users").Append(&users); err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (s GroupStore) RemoveGroupUser(ctx context.Context, params presenter.Remove
 	db := s.db.WithContext(ctx)
 
 	if err := db.Model(&domain.Group{Model: gorm.Model{ID: params.GroupID}}).Association("Users").Delete(&domain.User{Model: gorm.Model{ID: params.UserID}}); err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func (s GroupStore) ExistsGroupUser(ctx context.Context, params presenter.Exists
 		Where("group_id = ?", params.GroupID).
 		Limit(1).
 		Count(&count).Error; err != nil {
-		return false, errors.InteralError(err)
+		return false, apperr.NewInternalError(err)
 	}
 
 	return count > 0, nil

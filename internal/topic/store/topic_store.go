@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/roka-crew/domain"
-	"github.com/roka-crew/pkg/errors"
+	"github.com/roka-crew/pkg/apperr"
 	"github.com/roka-crew/pkg/persistence/sqlite"
 	"github.com/roka-crew/presenter"
 	"github.com/samber/lo"
@@ -24,7 +24,7 @@ func (s TopicStore) CreateTopic(ctx context.Context, params presenter.CreateTopi
 	db := s.db.WithContext(ctx)
 
 	if err := db.Create(&params).Error; err != nil {
-		return domain.Topic{}, errors.InteralError(err)
+		return domain.Topic{}, apperr.NewInternalError(err)
 	}
 
 	return domain.Topic{}, nil
@@ -51,7 +51,7 @@ func (s TopicStore) ListTopics(ctx context.Context, params presenter.ListTopicsP
 
 	var topics domain.Topics
 	if err := db.Find(&topics).Error; err != nil {
-		return domain.Topics{}, errors.InteralError(err)
+		return domain.Topics{}, apperr.NewInternalError(err)
 	}
 
 	return topics, nil
@@ -71,7 +71,7 @@ func (s TopicStore) PatchTopic(ctx context.Context, params presenter.PatchTopicP
 	}
 
 	if err := db.Model(&domain.Topic{}).Where("id = ?", params.ID).Updates(updates).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (s TopicStore) DeleteTopic(ctx context.Context, params presenter.DeleteTopi
 	db := s.db.WithContext(ctx)
 
 	if err := db.Where("id = ?", params.ID).Delete(&domain.Topic{}).Error; err != nil {
-		return errors.InteralError(err)
+		return apperr.NewInternalError(err)
 	}
 
 	return nil

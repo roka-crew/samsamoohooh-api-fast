@@ -18,17 +18,17 @@ func NewUserService(userStore *store.UserStore) *UserService {
 
 func (s UserService) CreateUser(ctx context.Context, request presenter.CreateUserRequest) (presenter.CreateUserResponse, error) {
 	// 1. 이름 중복 확인
-	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
-		Nicknames: []string{request.Nickname},
-		Limit:     1,
-	})
-	if err != nil {
-		return presenter.CreateUserResponse{}, err
-	}
+	// listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
+	// 	Nicknames: []string{request.Nickname},
+	// 	Limit:     1,
+	// })
+	// if err != nil {
+	// 	return presenter.CreateUserResponse{}, err
+	// }
 
-	if !listUsers.IsEmpty() {
-		return presenter.CreateUserResponse{}, domain.ErrUserAlreadyExists
-	}
+	// if !listUsers.IsEmpty() {
+	// 	return presenter.CreateUserResponse{}, domain.ErrUserAlreadyExists
+	// }
 
 	createdUser, err := s.userStore.CreateUser(ctx, presenter.CreateUserParams{
 		Nickname:   request.Nickname,
@@ -44,9 +44,9 @@ func (s UserService) CreateUser(ctx context.Context, request presenter.CreateUse
 	}, nil
 }
 
-func (u UserService) FindUserByMe(ctx context.Context, reqeust presenter.FindUserByMeRequest) (presenter.FindUserByMeResponse, error) {
-	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
-		IDs:   []uint{reqeust.RequestUserID},
+func (s UserService) FindUserByMe(ctx context.Context, request presenter.FindUserByMeRequest) (presenter.FindUserByMeResponse, error) {
+	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
+		IDs:   []uint{request.RequestUserID},
 		Limit: 1,
 	})
 	if err != nil {
@@ -62,9 +62,9 @@ func (u UserService) FindUserByMe(ctx context.Context, reqeust presenter.FindUse
 	}, nil
 }
 
-func (u UserService) PatchUserByMe(ctx context.Context, request presenter.PatchUserByMeRequest) error {
+func (s UserService) PatchUserByMe(ctx context.Context, request presenter.PatchUserByMeRequest) error {
 	// 1. 해당 사용자가 존재하는지 확인
-	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
+	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
 		IDs:   []uint{request.RequestUserID},
 		Limit: 1,
 	})
@@ -76,7 +76,7 @@ func (u UserService) PatchUserByMe(ctx context.Context, request presenter.PatchU
 	}
 
 	// 2. 사용자 정보 수정
-	err = u.userStore.PatchUser(ctx, presenter.PatchUserParams{
+	err = s.userStore.PatchUser(ctx, presenter.PatchUserParams{
 		UserID:     &request.RequestUserID,
 		Nickname:   request.Nickname,
 		Resolution: request.Resolution,
@@ -88,9 +88,9 @@ func (u UserService) PatchUserByMe(ctx context.Context, request presenter.PatchU
 	return nil
 }
 
-func (u UserService) DeleteUserByMe(ctx context.Context, request presenter.DeleteUserByMeRequest) error {
+func (s UserService) DeleteUserByMe(ctx context.Context, request presenter.DeleteUserByMeRequest) error {
 	// 1. 해당 사용자가 존재하는지 확인
-	listUsers, err := u.userStore.ListUsers(ctx, presenter.ListUsersParams{
+	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
 		IDs:   []uint{request.RequestUserID},
 		Limit: 1,
 	})
@@ -102,7 +102,7 @@ func (u UserService) DeleteUserByMe(ctx context.Context, request presenter.Delet
 	}
 
 	// 2. 사용자 정보 삭제
-	err = u.userStore.DeleteUser(ctx, presenter.DeleteUserParams{
+	err = s.userStore.DeleteUser(ctx, presenter.DeleteUserParams{
 		UserID: request.RequestUserID,
 	})
 	if err != nil {
