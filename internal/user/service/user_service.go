@@ -18,18 +18,19 @@ func NewUserService(userStore *store.UserStore) *UserService {
 
 func (s UserService) CreateUser(ctx context.Context, request presenter.CreateUserRequest) (presenter.CreateUserResponse, error) {
 	// 1. 이름 중복 확인
-	// listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
-	// 	Nicknames: []string{request.Nickname},
-	// 	Limit:     1,
-	// })
-	// if err != nil {
-	// 	return presenter.CreateUserResponse{}, err
-	// }
+	listUsers, err := s.userStore.ListUsers(ctx, presenter.ListUsersParams{
+		Nicknames: []string{request.Nickname},
+		Limit:     1,
+	})
+	if err != nil {
+		return presenter.CreateUserResponse{}, err
+	}
 
-	// if !listUsers.IsEmpty() {
-	// 	return presenter.CreateUserResponse{}, domain.ErrUserAlreadyExists
-	// }
+	if !listUsers.IsEmpty() {
+		return presenter.CreateUserResponse{}, domain.ErrUserAlreadyExists
+	}
 
+	// (2) 사용자 생성
 	createdUser, err := s.userStore.CreateUser(ctx, presenter.CreateUserParams{
 		Nickname:   request.Nickname,
 		Resolution: request.Resolution,

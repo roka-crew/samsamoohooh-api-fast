@@ -1,8 +1,9 @@
 package presenter
 
 import (
-	"github.com/roka-crew/pkg/persistence"
 	"time"
+
+	"github.com/roka-crew/pkg/persistence"
 
 	"github.com/roka-crew/domain"
 )

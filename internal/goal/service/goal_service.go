@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/roka-crew/pkg/persistence"
 	"time"
+
+	"github.com/roka-crew/pkg/persistence"
 
 	"github.com/roka-crew/domain"
 	goalStore "github.com/roka-crew/internal/goal/store"
