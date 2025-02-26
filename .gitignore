@@ -37,4 +37,4 @@ docs/swagger/*
 *.db
 
 # air
-.tmp_app
+tmp_app

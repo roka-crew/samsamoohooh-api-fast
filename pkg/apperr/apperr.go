@@ -62,10 +62,6 @@ func Is(err error, target error) bool {
 	return stderrors.Is(err, target)
 }
 
-func As(err error, target interface{}) bool {
-	return stderrors.As(err, &target)
-}
-
 type InternalError struct {
 	Err error
 }

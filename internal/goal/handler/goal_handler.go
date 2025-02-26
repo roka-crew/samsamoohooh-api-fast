@@ -71,7 +71,7 @@ func (h GoalHandler) CreateGoal(c echo.Context) error {
 	response, err = h.goalService.CreateGoal(c.Request().Context(), request)
 
 	switch {
-	case err != nil:
+	case err == nil:
 		return c.JSON(http.StatusCreated, response)
 	case apperr.Is(err, domain.ErrInvalidDeadline):
 		return apperr.Restore(err).SetStatus(http.StatusBadRequest)
