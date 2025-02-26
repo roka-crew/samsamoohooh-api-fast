@@ -35,3 +35,6 @@ docs/swagger/*
 
 # db
 *.db
+
+# air
+.tmp_app
